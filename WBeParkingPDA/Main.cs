@@ -12,10 +12,33 @@ namespace WBeParkingPDA
     {
         private BackgroundWorker bgworker;
 
-        public Main() :base()
+        public Main()
+            : base()
         {
             InitializeComponent();
-            
+
+            //初始化非同步背景作業
+            bgworker = new BackgroundWorker(this);
+            bgworker.DoWork += new DoWorkEventHandler(bgworker_DoWork);
+            bgworker.ProgressChanged += new ProgressChangedEventHandler(bgworker_ProgressChanged);
+            bgworker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bgworker_RunWorkerCompleted);
+            bgworker.WorkerReportsProgress = true;
+            bgworker.WorkerSupportsCancellation = false;
+        }
+
+        private void bgworker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void bgworker_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void bgworker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            throw new NotImplementedException();
         }
 
         private void Main_Load(object sender, EventArgs e)
@@ -55,7 +78,6 @@ namespace WBeParkingPDA
 
         private void btnRFIDBinding_Click(object sender, EventArgs e)
         {
-
             RFIDBinding rfidBindingForm = new RFIDBinding();
             rfidBindingForm.Show();
         }
@@ -70,6 +92,11 @@ namespace WBeParkingPDA
             {
                 panelUploadStatus.Visible = false;
             }
+        }
+
+        private void menuItem_AppExit_Click(object sender, EventArgs e)
+        {
+            this.Close();
         }
     }
 }

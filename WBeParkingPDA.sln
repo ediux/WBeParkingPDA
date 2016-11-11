@@ -4,6 +4,15 @@ Microsoft Visual Studio Solution File, Format Version 10.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WBeParkingPDA", "WBeParkingPDA\WBeParkingPDA.csproj", "{5C0CEED3-8FD1-497E-82A1-A3712E8BF0BE}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dlls", "Dlls", "{C8E01FD7-7CF4-48E5-8EA1-377EE0BDC859}"
+	ProjectSection(SolutionItems) = preProject
+		Dlls\BackgroundWorker.dll = Dlls\BackgroundWorker.dll
+		Dlls\MercuryAPICE.dll = Dlls\MercuryAPICE.dll
+		Dlls\System.Data.SQLite.dll = Dlls\System.Data.SQLite.dll
+		Dlls\System.Data.SQLite.dll.config = Dlls\System.Data.SQLite.dll.config
+		Dlls\System.Data.SQLite.pdb = Dlls\System.Data.SQLite.pdb
+		Dlls\System.Data.SQLite.xml = Dlls\System.Data.SQLite.xml
+		Dlls\USICF.dll = Dlls\USICF.dll
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
