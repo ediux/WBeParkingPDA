@@ -28,27 +28,27 @@ namespace WBeParkingPDA
 
         private void bgworker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            throw new NotImplementedException();
+            
         }
 
         private void bgworker_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
-            throw new NotImplementedException();
+           
         }
 
         private void bgworker_DoWork(object sender, DoWorkEventArgs e)
         {
-            throw new NotImplementedException();
+            
         }
 
         private void Main_Load(object sender, EventArgs e)
         {
-            Utility.HideTaskbar();
+            CoreDLL.HideTaskbar();
         }
 
         private void Main_Closing(object sender, CancelEventArgs e)
         {
-            Utility.ShowTaskbar();
+            CoreDLL.ShowTaskbar();
         }
 
         private void Main_KeyDown(object sender, KeyEventArgs e)

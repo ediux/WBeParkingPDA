@@ -7,76 +7,50 @@ using System.IO;
 using System.Reflection;
 using ThingMagic;
 using System.Threading;
+using WBeParkingPDA.Classes;
+using System.Data.SQLite;
+using System.Data;
+using System.Windows.Forms;
 
 namespace WBeParkingPDA
 {
-    public class LogProvider
-    {
-        /// <summary>
-        /// Function signature for log message handlers
-        /// </summary>
-        /// <param name="message"></param>
-        public delegate void LogHandler(string message);
-
-        /// <summary>
-        /// Subscribe a LogHandler to Log to receive log messages
-        /// </summary>
-        public event LogHandler Log;
-
-        /// <summary>
-        /// Call OnLog to send a log message
-        /// </summary>
-        /// <param name="message"></param>
-        public void OnLog(string message)
-        {
-            if (null != Log) { Log(message); }
-        }
-    }
+    
 
     internal static class Utility
     {
         static log4net.ILog logger = log4net.LogManager.GetLogger(typeof(Utility));
         static log4net.ILog transportLogger = log4net.LogManager.GetLogger("Transport");
         public static LogProvider Logger = new LogProvider();
+        
         private static PowerManager _powerMgr = null;
-        public static DiskLog DiskLog = new DiskLog("Utility.log");
-
-        private const int SW_HIDE = 0x00;
-        private const int SW_SHOW = 0x0001;
-
-        [DllImport("coredll.dll", CharSet=CharSet.Auto)]
-        private static extern IntPtr FindWindow(string lpClassName,string lpWindowName);
-
-        [DllImport("coredll.dll", CharSet = CharSet.Auto)]
-        private static extern bool ShowWindow(IntPtr hwnd, int nCmdShow);
-
-        [DllImport("coredll.dll", CharSet=CharSet.Auto)]
-        private static extern bool EnableWindow(IntPtr hwnd, bool enabled);
-
-        public static void ShowTaskbar()
-        {
-            IntPtr h = FindWindow("HHTaskBar", null);
-            ShowWindow(h, SW_SHOW);
-            EnableWindow(h, true);
-
-            IntPtr hSIP = FindWindow("MS_SIPBUTTON", null);
-            ShowWindow(hSIP, SW_SHOW);
-            EnableWindow(hSIP, true); 
-        }
-
-        public static void HideTaskbar()
-        {
-            IntPtr h = FindWindow("HHTaskBar", null);
-            ShowWindow(h, SW_HIDE);
-            EnableWindow(h, false);
-
-            IntPtr hSIP = FindWindow("MS_SIPBUTTON", null);
-            ShowWindow(hSIP, SW_HIDE);
-            EnableWindow(hSIP, false); 
-        }
-
-
+       
         static string appPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().GetName().CodeBase) + @"/Config.txt";
+
+        static string dbPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().GetName().CodeBase) + @"/wbeparking.db";
+
+        public static PowerManager PowerManager
+        {
+            get
+            {
+                if (null == _powerMgr)
+                {
+                    // Create a new instance of the PowerManager class
+                    _powerMgr = new PowerManager();
+
+                    // Enable power notifications. This will cause a thread to start
+                    // that will fire the PowerNotify event when any power notification 
+                    // is received.
+                    _powerMgr.EnableNotifications();
+                }
+                return _powerMgr;
+            }
+        }
+
+        private static string _readerPortName = "";
+        public static string ReaderPortName
+        {
+            get { return _readerPortName; }
+        }
 
         public static Dictionary<string, string> GetProperties()
         {
@@ -112,6 +86,12 @@ namespace WBeParkingPDA
                     }
                 }
                 fs.Close();
+
+                if (Properties.Count == 0)
+                {
+                    Properties = BuildDefaultProperties();
+                    SaveConfigurations(Properties);
+                }
             }
             catch (FileNotFoundException)
             {
@@ -122,6 +102,7 @@ namespace WBeParkingPDA
 
             return Properties;
         }
+
         /// <summary>
         /// Set the properties on the reader
         /// </summary>
@@ -193,7 +174,8 @@ namespace WBeParkingPDA
                 rsess.Reader.ParamSet("/reader/read/asyncOnTime", Convert.ToInt32(Properties["rfontime"]));
             }
         }
-        private static Dictionary<string, string> BuildDefaultProperties()
+
+        internal static Dictionary<string, string> BuildDefaultProperties()
         {
 
             //PA692的預設值
@@ -253,184 +235,11 @@ namespace WBeParkingPDA
                 throw ex;
             }
         }
-        public static Reader ConnectReader()
-        {
 
-            Reader objReader = null;
-            string readerPort = null;
-            List<string> ports = new List<string>();
-
-            logger.Debug("Starting ConnectReader");
-
-            // First, try last known-good port
-            Dictionary<string, string> properties = GetProperties();
-            
-            if (properties.Count == 0)
-            {
-                properties = BuildDefaultProperties();
-                SaveConfigurations(properties);
-            }
-            string lastPort = properties["comport"];
-
-            System.Diagnostics.Debug.Write(string.Format("lastPort = {0}", lastPort));
-
-             logger.Debug("lastPort = " + lastPort);
-            if (lastPort != "")
-            {
-                int retries = 3;
-                while ((0 < retries) && (null == objReader))
-                {
-                    logger.Debug("Trying last-known port: " + lastPort
-                     + " (" + retries.ToString() + " tries left)");
-#if DEBUG
-                    DiskLog.Log("Trying last-known port: " + lastPort
-                        + " (" + retries.ToString() + " tries left)");
-#endif
-                    retries -= 1;
-                    readerPort = lastPort;
-                    objReader = ConnectReader(lastPort);
-                    if (null != objReader) { break; }
-                    Thread.Sleep(1000);
-                }
-            }
-            if (null == objReader)
-            {
-                // Next, try all known ports
-                // DiskLog.Log("Enumerating serial ports...");
-                string[] portnames = System.IO.Ports.SerialPort.GetPortNames();
-
-                //Add Port names
-                int newsize = portnames.Count() + 1;
-                Array.Resize(ref portnames, newsize);
-                portnames[newsize - 1] = "COM8";
-                //
-
-                Array.Reverse(portnames);
-                ports.AddRange(portnames);
-                {
-                    StringBuilder sb = new StringBuilder();
-                    sb.Append("Detected Ports:");
-                    foreach (string port in ports)
-                    {
-                        sb.Append(" " + port.ToString());
-                    }
-                    // logger.Debug(sb.ToString());
-                }
-#if DEBUG
-                {
-                    StringBuilder sb = new StringBuilder();
-                    sb.Append("Detected Ports:");
-                    foreach (string port in ports)
-                    {
-                        sb.Append(" " + port.ToString());
-                    }
-                    // DiskLog.Log(sb.ToString());
-                }
-#endif
-                foreach (string port in ports)
-                {
-                    switch (port.ToUpper())
-                    {
-                        case "COM0":
-                        case "COM1":  // physical DB-9 port
-                        case "COM2":  // GPS port
-                        case "COM3":  // GPS intermediate driver
-                            //logger.Debug("Skipping port " + port);
-                            continue;
-                    }
-                    //   logger.Debug("Trying port " + port);
-#if DEBUG
-                    // DiskLog.Log("Trying port " + port);
-#endif
-                    //Connect to the usb reader
-                    readerPort = port;
-                    objReader = ConnectReader(port);
-                    if (null != objReader)
-                    {
-                        StringBuilder portBlacklistSB = new StringBuilder();
-                        foreach (string portName in ports)
-                        {
-                            if (portName != readerPort)
-                            {
-                                portBlacklistSB.Append(" " + portName + " ");
-                            }
-                        }
-                        string portBlacklist = portBlacklistSB.ToString();
-
-#if DEBUG
-                        string message =
-                            "Found a reader on port " + readerPort + "\r\n"
-                            + "portBlacklist: " + portBlacklist;
-                        // DiskLog.Log(message);
-#endif
-                        break;
-                    }
-                }
-            }
-
-            // Did we find a reader?
-            if (objReader == null)
-            {
-                string message = "RFID reader was not found. Please check the USB connection or re-install the FTDI driver";
-                //DiskLog.Log(message);
-                //logger.Error(message);
-                throw new Exception(message);
-            }
-            else
-            {
-#if DEBUG
-                //DiskLog.Log("Saving reader port " + readerPort);
-#endif
-                properties["comport"] = readerPort;
-                //Utilities.SaveConfigurations(properties);
-#if DEBUG
-                // DiskLog.Log("Connected: " + readerPort);
-#endif
-                // logger.Info("Connected to reader on port " + readerPort);
-                return objReader;
-            }
-        }
-
-        public static Reader ConnectReader(string port)
-        {
-            Reader objReader = null;
-            try
-            {
-                //logger.Info("Starting ConnectReader(" + port + ")...");
-                //DiskLog.Log("Starting ConnectReader(" + port + ")...");
-                //objReader = Reader.Create(@"eapi:///" + port);
-                objReader = new SerialReader(@"/" + port);
-                // DiskLog.Log("Created new SerialReader(" + @"/" + port + ")");
-                //Mark for take too long to turn on module
-                //objReader.ParamSet("/reader/baudRate", 9600);
-                //DiskLog.Log("Set baud rate to 9600");
-
-                objReader.Connect();
-                //objReader.ParamSet("/reader/transportTimeout", 2000);
-                string _readerPortName = port;
-                //logger.Info("Connected to SerialReader on " + port);
-                //DiskLog.Log("Connected to SerialReader on " + port);
-                objReader.Transport += new EventHandler<TransportListenerEventArgs>(objReader_Transport);
-                //objReader.Transport += new EventHandler<TransportListenerEventArgs>(objReader_Transport);
-            }
-            catch (Exception ex)
-            {
-                //logger.Error("In ConnectReader(" + port + "): " + ex.ToString());
-                //DiskLog.Log("Caught exception in ConnectReader(" + port + "): " + ex.ToString());
-                objReader = null;
-            }
-            return objReader;
-        }
-
-        static void objReader_Transport(object sender, TransportListenerEventArgs e)
-        {
-            System.Diagnostics.Debug.Write(String.Format(
-                  "{0}: {1} (timeout={2:D}ms)",
-                  e.Tx ? "TX" : "RX",
-                  ByteFormat.ToHex(e.Data, "", " "),
-                  e.Timeout
-                  ));
-        }
+        /// <summary>
+        /// 切換時區對應地區:PA692 預設對應區域為北美
+        /// </summary>
+        /// <param name="regionName">時區名稱</param>
         public static void SwitchRegion(string regionName)
         {
             switch (regionName.ToLower())
@@ -478,177 +287,106 @@ namespace WBeParkingPDA
                     throw new ArgumentException("Unknown Region: " + regionName);
             }
         }
-    }
 
-    public class DiskLog
-    {
-#if DEBUG
-        StreamWriter log;
-#endif
-        public DiskLog(string filename)
+        public static void Initializedatabase()
         {
-#if DEBUG
-            // Add unique string to filename to allow multiple processes that use the same classes
-            // TODO: Come up with a more controlled way to disambiguate processes
-            filename = Environment.TickCount.ToString() + "-" + filename;
-            log = new StreamWriter(filename, true);
-#endif
-        }
-        public void Log(string message)
-        {
-#if DEBUG
+            SQLiteHelper sqlce = null;
             try
             {
-                string text = Environment.TickCount.ToString() + " " + message + "\r\n";
-                log.Write(text);
-                log.Flush();
+
+                sqlce = new SQLiteHelper(dbPath);
+
+                DataTable dt = sqlce.select(@"SELECT name FROM sqlite_master WHERE type='table';");
+
+                if (dt != null && dt.Rows.Count == 0)
+                {
+                    //建立新的資料表結構
+                    sqlce.select(@"CREATE TABLE CarPurposeTypes (
+    Id   INTEGER       PRIMARY KEY ASC
+                       NOT NULL,
+    Name VARCHAR (100) NOT NULL
+                       DEFAULT 未命名,
+    Void BOOLEAN       NOT NULL
+                       DEFAULT (0) 
+);");
+
+                    sqlce.select(@"CREATE TABLE ETCBinding (
+    ETCID            VARCHAR (60) PRIMARY KEY ASC
+                                  UNIQUE
+                                  NOT NULL,
+    CarID            VARCHAR (20) NOT NULL,
+    CarPurposeTypeID INT          REFERENCES CarPurposeTypes (Id) ON DELETE SET NULL
+);
+");
+
+                }
+
+
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // Prevent stray exceptions if logger is called from weird places
-                // (e.g., during application exit, after a crash.)  Makes it hard
-                // to debug the debugger, but if you get to that point, you have 
-                // bigger problems.
+                logger.Error(ex.Message, ex);
             }
-#endif
+
         }
-    }
-    public static class CoreDLL
-    {
-        [DllImport("CoreDLL")]
-        public static extern int ReleasePowerRequirement(IntPtr hPowerReq);
 
-
-        [DllImport("CoreDLL", SetLastError = true)]
-        public static extern IntPtr SetPowerRequirement
-        (
-            string pDevice,
-            CEDeviceDriverPowerStates DeviceState,
-            DevicePowerFlags DeviceFlags,
-            IntPtr pSystemState,
-            uint StateFlagsZero
-        );
-
-        [DllImport("CoreDLL", SetLastError = true)]
-        public static extern IntPtr SetDevicePower
-            (
-                string pDevice,
-                DevicePowerFlags DeviceFlags,
-            CEDeviceDriverPowerStates DevicePowerState
-            );
-        [DllImport("CoreDLL")]
-        public static extern int GetDevicePower(string device, DevicePowerFlags flags, out CEDeviceDriverPowerStates PowerState);
-
-        [DllImport("CoreDLL")]
-        public static extern int SetSystemPowerState(String stateName, PowerState powerState, DevicePowerFlags flags);
-
-
-        [DllImport("CoreDLL")]
-        public static extern int PowerPolicyNotify(
-          PPNMessage dwMessage,
-            int option
-            //    DevicePowerFlags);
-        );
-
-
-        public class SYSTEM_POWER_STATUS_EX2
+        public static void GetCarPurposeTypesList(ComboBox ddl)
         {
-            public byte ACLineStatus;
-            public byte BatteryFlag;
-            public byte BatteryLifePercent;
-            public byte Reserved1;
-            public uint BatteryLifeTime;
-            public uint BatteryFullLifeTime;
-            public byte Reserved2;
-            public byte BackupBatteryFlag;
-            public byte BackupBatteryLifePercent;
-            public byte Reserved3;
-            public uint BackupBatteryLifeTime;
-            public uint BackupBatteryFullLifeTime;
-            public uint BatteryVoltage;
-            public uint BatteryCurrent;
-            public uint BatteryAverageCurrent;
-            public uint BatteryAverageInterval;
-            public uint BatterymAHourConsumed;
-            public uint BatteryTemperature;
-            public uint BackupBatteryVoltage;
-            public byte BatteryChemistry;
+            SQLiteHelper sqlce = null;
+            try
+            {
+                sqlce = new SQLiteHelper(dbPath);
+                DataTable dt = sqlce.select(@"Select Id,Name,Void From CarPurposeTypes Where Void=0");
+                
+                if (dt != null && dt.Rows.Count > 0)
+                {
+
+                    ddl.Items.Clear();
+                    ddl.DisplayMember = "Name";
+                    ddl.ValueMember = "Id";
+
+                    foreach (DataRow row in dt.Rows)
+                    {
+                        var objRow = new CarPurposeTypes();
+                        objRow.Id = int.Parse(string.Format("{0}", row["Id"]));
+                        objRow.Name = (string)row["Name"];
+                        objRow.Void = (bool)row["Void"];
+
+                        ddl.Items.Add(objRow);
+                    }
+
+                    ddl.SelectedIndex = 0;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex.Message, ex);
+                throw ex;
+            }
+
         }
-        public class SYSTEM_POWER_STATUS_EX
+
+        public static void SaveETCTagBinding(string EPCID, string CarId, int PropseId)
         {
-            public byte ACLineStatus;
-            public byte BatteryFlag;
-            public byte BatteryLifePercent;
-            public byte Reserved1;
-            public uint BatteryLifeTime;
-            public uint BatteryFullLifeTime;
-            public byte Reserved2;
-            public byte BackupBatteryFlag;
-            public byte BackupBatteryLifePercent;
-            public byte Reserved3;
-            public uint BackupBatteryLifeTime;
-            public uint BackupBatteryFullLifeTime;
+            SQLiteHelper sqlce = null;
+            try
+            {
+                sqlce = new SQLiteHelper(dbPath);
+                sqlce.execute(@"Insert Into ETCBinding  (ETCID,CarID,CarPurposeTypeID)
+Values(@p0,@p1,@p2);", EPCID, CarId, PropseId);
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex.Message, ex);
+                throw;
+            }
         }
-        [DllImport("coredll")]
-        public static extern uint GetSystemPowerStatusEx(SYSTEM_POWER_STATUS_EX lpSystemPowerStatus, bool fUpdate);
 
-        [DllImport("coredll")]
-        public static extern uint GetSystemPowerStatusEx2(SYSTEM_POWER_STATUS_EX2 lpSystemPowerStatus, uint dwLen, bool fUpdate);
-
-        //[DllImport("CoreDLL")]
-        //public static extern int GetSystemPowerStatusEx2(
-        //     SYSTEM_POWER_STATUS_EX2 statusInfo, 
-        //    int length,
-        //    int getLatest
-        //        );
-
-
-        //public static SYSTEM_POWER_STATUS_EX2 GetSystemPowerStatus()
-        //{
-        //    SYSTEM_POWER_STATUS_EX2 retVal = new SYSTEM_POWER_STATUS_EX2();
-        //   int result =  GetSystemPowerStatusEx2( retVal, Marshal.SizeOf(retVal) , 1);
-        //    return retVal;
-        //}
-        // System\CurrentControlSet\Control\Power\Timeouts
-        //[DllImport("CoreDLL")]
-        //public static extern int SystemParametersInfo
-        //(
-        //    SPI Action,
-        //    uint Param, 
-        //    ref int  result, 
-        //    int updateIni
-        //);
-
-        //[DllImport("CoreDLL")]
-        //public static extern int SystemIdleTimerReset();
-
-        //[DllImport("CoreDLL")]
-        //public static extern int CeRunAppAtTime(string application, SystemTime startTime);
-        //[DllImport("CoreDLL")]
-        //public static extern int CeRunAppAtEvent(string application, int EventID);
-
-        //[DllImport("CoreDLL")]
-        //public static extern int FileTimeToSystemTime(ref long lpFileTime, SystemTime lpSystemTime);
-        //[DllImport("CoreDLL")]
-        //public static extern int FileTimeToLocalFileTime(ref long lpFileTime, ref long lpLocalFileTime);
-
-        // For named events
-        //[DllImport("CoreDLL", SetLastError = true)]
-        //internal static extern bool EventModify(IntPtr hEvent, EVENT ef);
-
-        [DllImport("CoreDLL", SetLastError = true)]
-        internal static extern IntPtr CreateEvent(IntPtr lpEventAttributes, bool bManualReset, bool bInitialState, string lpName);
-
-        [DllImport("CoreDLL", SetLastError = true)]
-        internal static extern bool CloseHandle(IntPtr hObject);
-
-        [DllImport("CoreDLL", SetLastError = true)]
-        internal static extern int WaitForSingleObject(IntPtr hHandle, int dwMilliseconds);
-
-        //[DllImport("CoreDLL", SetLastError = true)]
-        //internal static extern int WaitForMultipleObjects(int nCount, IntPtr[] lpHandles, bool fWaitAll, int dwMilliseconds);
     }
 
+ 
+   
     #region enums
 
     /// <summary>

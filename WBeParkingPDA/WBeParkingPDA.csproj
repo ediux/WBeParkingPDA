@@ -58,9 +58,13 @@
       <HintPath>..\Dlls\MercuryAPICE.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib" />
+    <Reference Include="Newtonsoft.Json.Compact, Version=3.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Dlls\Newtonsoft.Json.Compact.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Data.SQLite, Version=1.0.91.0, Culture=neutral, PublicKeyToken=1fdb50b1b62b4c84, processorArchitecture=MSIL">
+    <Reference Include="System.Data.SQLite, Version=1.0.103.0, Culture=neutral, PublicKeyToken=1fdb50b1b62b4c84, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Dlls\System.Data.SQLite.dll</HintPath>
     </Reference>
@@ -82,8 +86,13 @@
     <Compile Include="BaseForm.Designer.cs">
       <DependentUpon>BaseForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Classes\CarPurposeTypes.cs" />
+    <Compile Include="Classes\CoreDLL.cs" />
+    <Compile Include="Classes\LogProvider.cs" />
+    <Compile Include="Classes\ReadManager.cs" />
     <Compile Include="Classes\RFIDScanner.cs" />
     <Compile Include="Classes\SQLiteHelper.cs" />
+    <Compile Include="Classes\WebClientHelper.cs" />
     <Compile Include="Main.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -119,8 +128,13 @@
     <Compile Include="Classes\Utility.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="App.config">
+    </Content>
     <None Include="ClassDiagram1.cd" />
     <None Include="DesignTimeAttributes.xmta" />
+    <None Include="wbeparking.db">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CompactFramework.CSharp.targets" />
   <ProjectExtensions>

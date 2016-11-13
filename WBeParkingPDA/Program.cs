@@ -2,6 +2,8 @@
 using System.Linq;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using log4net.Config;
+using log4net;
 
 namespace WBeParkingPDA
 {
@@ -13,6 +15,9 @@ namespace WBeParkingPDA
         [MTAThread]
         static void Main()
         {
+            XmlConfigurator.Configure();
+            ILog logger = LogManager.GetLogger("Program");
+            logger.Info("Program started");
             Application.Run(new Main());
         }
     }

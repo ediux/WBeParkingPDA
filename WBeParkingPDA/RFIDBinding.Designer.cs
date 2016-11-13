@@ -29,13 +29,13 @@
         private void InitializeComponent()
         {
             this.btnBackTo = new System.Windows.Forms.Button();
-            this.label1 = new System.Windows.Forms.Label();
-            this.textBox1 = new System.Windows.Forms.TextBox();
-            this.textBox2 = new System.Windows.Forms.TextBox();
-            this.label2 = new System.Windows.Forms.Label();
-            this.label3 = new System.Windows.Forms.Label();
-            this.comboBox1 = new System.Windows.Forms.ComboBox();
-            this.label4 = new System.Windows.Forms.Label();
+            this.lbl_eTag = new System.Windows.Forms.Label();
+            this.tb_eTagEPC = new System.Windows.Forms.TextBox();
+            this.tbCarId = new System.Windows.Forms.TextBox();
+            this.lblCarID = new System.Windows.Forms.Label();
+            this.lblPurposeTypes = new System.Windows.Forms.Label();
+            this.ddlPurposeTypes = new System.Windows.Forms.ComboBox();
+            this.btnSave = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // btnBackTo
@@ -49,68 +49,75 @@
             this.btnBackTo.Text = "回上一頁";
             this.btnBackTo.Click += new System.EventHandler(this.btnBackTo_Click);
             // 
-            // label1
+            // lbl_eTag
             // 
-            this.label1.Font = new System.Drawing.Font("Tahoma", 22F, System.Drawing.FontStyle.Regular);
-            this.label1.Location = new System.Drawing.Point(0, 83);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(77, 42);
-            this.label1.Text = "eTag";
+            this.lbl_eTag.Font = new System.Drawing.Font("Tahoma", 22F, System.Drawing.FontStyle.Regular);
+            this.lbl_eTag.Location = new System.Drawing.Point(0, 83);
+            this.lbl_eTag.Name = "lbl_eTag";
+            this.lbl_eTag.Size = new System.Drawing.Size(77, 42);
+            this.lbl_eTag.Text = "eTag";
             // 
-            // textBox1
+            // tb_eTagEPC
             // 
-            this.textBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            this.tb_eTagEPC.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox1.Font = new System.Drawing.Font("Tahoma", 22F, System.Drawing.FontStyle.Regular);
-            this.textBox1.Location = new System.Drawing.Point(79, 83);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(398, 42);
-            this.textBox1.TabIndex = 2;
+            this.tb_eTagEPC.Enabled = false;
+            this.tb_eTagEPC.Font = new System.Drawing.Font("Tahoma", 22F, System.Drawing.FontStyle.Regular);
+            this.tb_eTagEPC.Location = new System.Drawing.Point(79, 83);
+            this.tb_eTagEPC.Name = "tb_eTagEPC";
+            this.tb_eTagEPC.ReadOnly = true;
+            this.tb_eTagEPC.Size = new System.Drawing.Size(398, 42);
+            this.tb_eTagEPC.TabIndex = 2;
             // 
-            // textBox2
+            // tbCarId
             // 
-            this.textBox2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            this.tbCarId.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox2.Font = new System.Drawing.Font("Tahoma", 22F, System.Drawing.FontStyle.Regular);
-            this.textBox2.Location = new System.Drawing.Point(79, 131);
-            this.textBox2.Name = "textBox2";
-            this.textBox2.Size = new System.Drawing.Size(398, 42);
-            this.textBox2.TabIndex = 4;
+            this.tbCarId.Font = new System.Drawing.Font("Tahoma", 22F, System.Drawing.FontStyle.Regular);
+            this.tbCarId.Location = new System.Drawing.Point(79, 131);
+            this.tbCarId.Name = "tbCarId";
+            this.tbCarId.Size = new System.Drawing.Size(398, 42);
+            this.tbCarId.TabIndex = 4;
+            this.tbCarId.KeyUp += new System.Windows.Forms.KeyEventHandler(this.textBox2_KeyUp);
             // 
-            // label2
+            // lblCarID
             // 
-            this.label2.Font = new System.Drawing.Font("Tahoma", 22F, System.Drawing.FontStyle.Regular);
-            this.label2.Location = new System.Drawing.Point(0, 131);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(77, 42);
-            this.label2.Text = "車號";
+            this.lblCarID.Font = new System.Drawing.Font("Tahoma", 22F, System.Drawing.FontStyle.Regular);
+            this.lblCarID.Location = new System.Drawing.Point(0, 131);
+            this.lblCarID.Name = "lblCarID";
+            this.lblCarID.Size = new System.Drawing.Size(77, 42);
+            this.lblCarID.Text = "車號";
             // 
-            // label3
+            // lblPurposeTypes
             // 
-            this.label3.Font = new System.Drawing.Font("Tahoma", 22F, System.Drawing.FontStyle.Regular);
-            this.label3.Location = new System.Drawing.Point(3, 179);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(77, 42);
-            this.label3.Text = "用途";
+            this.lblPurposeTypes.Font = new System.Drawing.Font("Tahoma", 22F, System.Drawing.FontStyle.Regular);
+            this.lblPurposeTypes.Location = new System.Drawing.Point(3, 179);
+            this.lblPurposeTypes.Name = "lblPurposeTypes";
+            this.lblPurposeTypes.Size = new System.Drawing.Size(77, 42);
+            this.lblPurposeTypes.Text = "用途";
             // 
-            // comboBox1
+            // ddlPurposeTypes
             // 
-            this.comboBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            this.ddlPurposeTypes.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
-            this.comboBox1.Font = new System.Drawing.Font("Tahoma", 22F, System.Drawing.FontStyle.Regular);
-            this.comboBox1.Location = new System.Drawing.Point(79, 179);
-            this.comboBox1.Name = "comboBox1";
-            this.comboBox1.Size = new System.Drawing.Size(398, 43);
-            this.comboBox1.TabIndex = 8;
+            this.ddlPurposeTypes.Font = new System.Drawing.Font("Tahoma", 22F, System.Drawing.FontStyle.Regular);
+            this.ddlPurposeTypes.Location = new System.Drawing.Point(79, 179);
+            this.ddlPurposeTypes.Name = "ddlPurposeTypes";
+            this.ddlPurposeTypes.Size = new System.Drawing.Size(398, 43);
+            this.ddlPurposeTypes.TabIndex = 8;
+            this.ddlPurposeTypes.KeyUp += new System.Windows.Forms.KeyEventHandler(this.ddlPurposeTypes_KeyUp);
             // 
-            // label4
+            // btnSave
             // 
-            this.label4.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
-            this.label4.Font = new System.Drawing.Font("Tahoma", 20F, System.Drawing.FontStyle.Regular);
-            this.label4.Location = new System.Drawing.Point(3, 722);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(474, 34);
+            this.btnSave.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnSave.Enabled = false;
+            this.btnSave.Font = new System.Drawing.Font("Tahoma", 22F, System.Drawing.FontStyle.Bold);
+            this.btnSave.Location = new System.Drawing.Point(373, 228);
+            this.btnSave.Name = "btnSave";
+            this.btnSave.Size = new System.Drawing.Size(104, 40);
+            this.btnSave.TabIndex = 13;
+            this.btnSave.Text = "儲存";
+            this.btnSave.Click += new System.EventHandler(this.btnSave_Click);
             // 
             // RFIDBinding
             // 
@@ -118,13 +125,13 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.BackColor = System.Drawing.Color.Silver;
             this.ClientSize = new System.Drawing.Size(480, 800);
-            this.Controls.Add(this.comboBox1);
-            this.Controls.Add(this.label3);
-            this.Controls.Add(this.label2);
-            this.Controls.Add(this.label4);
-            this.Controls.Add(this.textBox2);
-            this.Controls.Add(this.textBox1);
-            this.Controls.Add(this.label1);
+            this.Controls.Add(this.btnSave);
+            this.Controls.Add(this.ddlPurposeTypes);
+            this.Controls.Add(this.lblPurposeTypes);
+            this.Controls.Add(this.lblCarID);
+            this.Controls.Add(this.tbCarId);
+            this.Controls.Add(this.tb_eTagEPC);
+            this.Controls.Add(this.lbl_eTag);
             this.Controls.Add(this.btnBackTo);
             this.Location = new System.Drawing.Point(0, 0);
             this.Name = "RFIDBinding";
@@ -134,13 +141,13 @@
             this.Load += new System.EventHandler(this.RFIDBinding_Load);
             this.Closing += new System.ComponentModel.CancelEventHandler(this.RFIDBinding_Closing);
             this.Controls.SetChildIndex(this.btnBackTo, 0);
-            this.Controls.SetChildIndex(this.label1, 0);
-            this.Controls.SetChildIndex(this.textBox1, 0);
-            this.Controls.SetChildIndex(this.textBox2, 0);
-            this.Controls.SetChildIndex(this.label4, 0);
-            this.Controls.SetChildIndex(this.label2, 0);
-            this.Controls.SetChildIndex(this.label3, 0);
-            this.Controls.SetChildIndex(this.comboBox1, 0);
+            this.Controls.SetChildIndex(this.lbl_eTag, 0);
+            this.Controls.SetChildIndex(this.tb_eTagEPC, 0);
+            this.Controls.SetChildIndex(this.tbCarId, 0);
+            this.Controls.SetChildIndex(this.lblCarID, 0);
+            this.Controls.SetChildIndex(this.lblPurposeTypes, 0);
+            this.Controls.SetChildIndex(this.ddlPurposeTypes, 0);
+            this.Controls.SetChildIndex(this.btnSave, 0);
             this.ResumeLayout(false);
 
         }
@@ -148,13 +155,13 @@
         #endregion
 
         private System.Windows.Forms.Button btnBackTo;
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.TextBox textBox1;
-        private System.Windows.Forms.TextBox textBox2;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.ComboBox comboBox1;
-        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Label lbl_eTag;
+        private System.Windows.Forms.TextBox tb_eTagEPC;
+        private System.Windows.Forms.TextBox tbCarId;
+        private System.Windows.Forms.Label lblCarID;
+        private System.Windows.Forms.Label lblPurposeTypes;
+        private System.Windows.Forms.ComboBox ddlPurposeTypes;
+        private System.Windows.Forms.Button btnSave;
 
     }
 }
