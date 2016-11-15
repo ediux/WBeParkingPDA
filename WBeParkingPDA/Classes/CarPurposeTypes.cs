@@ -5,7 +5,7 @@ using System.Text;
 
 namespace WBeParkingPDA
 {
-    internal class CarPurposeTypes
+    public class CarPurposeTypes
     {
         public int Id { get; set; }
         public string Name { get; set; }

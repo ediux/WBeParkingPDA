@@ -24,21 +24,64 @@ namespace WBeParkingPDA
             bgworker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bgworker_RunWorkerCompleted);
             bgworker.WorkerReportsProgress = true;
             bgworker.WorkerSupportsCancellation = false;
+
+            progressBar1.Maximum = 100;
+            progressBar1.Minimum = 0;
+            progressBar1.Value = 0;
         }
 
         private void bgworker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            
+            panelUploadStatus.Visible = false;
+            btnUpload.Enabled = true;
+            if (e.Result is bool)
+            {
+                if (((bool)e.Result))
+                {
+                    MessageBox.Show("同步成功!");
+                }
+                else
+                {
+                    MessageBox.Show("同步失敗!");
+                }
+            }
         }
 
         private void bgworker_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
-           
+            progressBar1.Value = e.ProgressPercentage;
+            if (e.UserState is Exception)
+            {
+                labelUploadStatus.Text = "傳送失敗!!"+((Exception)e.UserState).Message;
+            }
+            else
+            {
+                labelUploadStatus.Text = string.Format("{0}%", e.ProgressPercentage);
+            }
         }
 
         private void bgworker_DoWork(object sender, DoWorkEventArgs e)
         {
-            
+            bgworker.ReportProgress(10);
+            WBeParkingPDA.Classes.WebClientHelper client = new WBeParkingPDA.Classes.WebClientHelper();
+            bgworker.ReportProgress(50);
+            try
+            {
+                SyncDataViewModel result = client.PostData(Utility.GetDBJson(), "http://192.168.2.80:5002/api/SQLiteSync");
+            }
+            catch (Exception ex)
+            {
+                bgworker.ReportProgress(50, ex);
+               
+                e.Result = false;
+                return;
+            }
+
+            bgworker.ReportProgress(99);
+
+            bgworker.ReportProgress(100);
+            e.Result = true;
+
         }
 
         private void Main_Load(object sender, EventArgs e)
@@ -86,10 +129,13 @@ namespace WBeParkingPDA
         {
             if (panelUploadStatus.Visible == false)
             {
+                bgworker.RunWorkerAsync();
+                btnUpload.Enabled = false;
                 panelUploadStatus.Visible = true;
             }
             else
             {
+
                 panelUploadStatus.Visible = false;
             }
         }

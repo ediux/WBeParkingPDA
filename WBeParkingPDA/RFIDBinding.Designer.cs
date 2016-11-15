@@ -78,6 +78,7 @@
             this.tbCarId.Name = "tbCarId";
             this.tbCarId.Size = new System.Drawing.Size(398, 42);
             this.tbCarId.TabIndex = 4;
+            this.tbCarId.GotFocus += new System.EventHandler(this.tbCarId_GotFocus);
             this.tbCarId.KeyUp += new System.Windows.Forms.KeyEventHandler(this.textBox2_KeyUp);
             // 
             // lblCarID

@@ -11,6 +11,7 @@ using WBeParkingPDA.Classes;
 using System.Data.SQLite;
 using System.Data;
 using System.Windows.Forms;
+using TCPark_PDA;
 
 namespace WBeParkingPDA
 {
@@ -367,14 +368,49 @@ namespace WBeParkingPDA
 
         }
 
+        public static bool IsETCExists(string EPCID, out string OCarId, out int OPropseId)
+        {
+            SQLiteHelper sqlce = null;
+            try
+            {
+                sqlce = new SQLiteHelper(dbPath);
+                DataTable dt = sqlce.select(@"Select ETCID,CarID,CarPurposeTypeID From ETCBinding Where ETCID=@p0)", EPCID);
+                OCarId = string.Empty;
+                OPropseId = 0;
+
+                if (dt != null && dt.Rows.Count >= 1)
+                {
+                    DataRow row = dt.Rows[0];
+                    OCarId = row["CarID"] as string;
+                    OPropseId = (int)row["CarPurposeTypeID"];
+                    return true;
+                }
+
+                return false;
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex.Message, ex);
+                throw ex;
+            }
+        }
         public static void SaveETCTagBinding(string EPCID, string CarId, int PropseId)
         {
             SQLiteHelper sqlce = null;
             try
             {
                 sqlce = new SQLiteHelper(dbPath);
-                sqlce.execute(@"Insert Into ETCBinding  (ETCID,CarID,CarPurposeTypeID)
-Values(@p0,@p1,@p2);", EPCID, CarId, PropseId);
+
+                if (IsETCExists(EPCID, out CarId, out PropseId))
+                {
+                    sqlce.execute("Update ETCBinding Set ETCID=@p0,CarID=@p1,CarPurposeTypeID=@p2 Where ETCID=@p0", EPCID, CarId, PropseId);
+                }
+                else
+                {
+                    sqlce.execute(@"Insert Into ETCBinding  (ETCID,CarID,CarPurposeTypeID)
+        Values(@p0,@p1,@p2);", EPCID, CarId, PropseId);
+                }
+
             }
             catch (Exception ex)
             {
@@ -382,7 +418,158 @@ Values(@p0,@p1,@p2);", EPCID, CarId, PropseId);
                 throw;
             }
         }
+        public static SyncDataViewModel GetDBJson()
+        {
+            SQLiteHelper sqlce = null;
+            SyncDataViewModel model = new SyncDataViewModel();
+            try
+            {
+                sqlce = new SQLiteHelper(dbPath);
+                DataTable dt = sqlce.select(@"Select ETCID,CarID,CarPurposeTypeID From ETCBinding");
 
+                if (dt != null && dt.Rows.Count > 0)
+                {
+                    foreach (DataRow row in dt.Rows)
+                    {
+                        ETCBinding etcdata = new ETCBinding() { 
+                            CarID = (string)row["CarID"], 
+                            ETCID = (string)row["ETCID"], 
+                            CarPurposeTypeID = (int)row["CarPurposeTypeID"]
+                        };
+                        model.ETCBinding.Add(etcdata);
+                    }
+                }
+                sqlce = new SQLiteHelper(dbPath);
+                DataTable dt1 = sqlce.select(@"Select Id,Name,Void From CarPurposeTypes Where Void=0");
+                if (dt1 != null && dt1.Rows.Count > 0)
+                {
+                    foreach (DataRow row in dt1.Rows)
+                    {
+                        CarPurposeTypes cartype = new CarPurposeTypes()
+                        {
+                            Id = int.Parse(string.Format("{0}", row["Id"])),
+                            Name = (string)row["Name"],
+                            Void = (bool)row["Void"]
+                        };
+                        model.CarPurposeTypes.Add(cartype);
+                    }
+                }
+
+                return model;
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex.Message, ex);
+                return model;
+            }
+        }
+
+        public static string GetStringByKeyBoard(string strStart, KeyBoardInputType type)
+        {
+            bool bTmp;
+            return GetStringByKeyBoard(strStart, type, ' ', out bTmp);
+        }
+
+        public static string GetStringByKeyBoard(string strStart, KeyBoardInputType type, out bool bIsCancel)
+        {
+            return GetStringByKeyBoard(strStart, type, ' ', out bIsCancel);
+        }
+
+        public static string GetStringByKeyBoard(string strStart, KeyBoardInputType type, char c)
+        {
+            bool bTmp;
+            return GetStringByKeyBoard(strStart, type, c, out bTmp);
+        }
+
+        public static string GetStringByKeyBoard(string strStart, KeyBoardInputType type, char c, out bool bIsCancel)
+        {
+            bIsCancel = true;
+           
+
+            using (FrmKeyBoard frm = new FrmKeyBoard(KeyBoardHelperFactory.MakeKeyBoardHelper(type), strStart, c))
+            {
+                if (type == KeyBoardInputType.Password)
+                    frm.isPwd = true;
+
+                frm.ShowDialog();
+
+                bIsCancel = frm.DialogResult == DialogResult.Cancel;
+                return frm.strInput;
+            }
+        }
+        public const string  MsgTitle = "華邦eParking";
+        #region 秀訊息
+        public static void ShowInfoMsg(string Text)
+        {
+            ShowMsgMain(MsgTitle, Text, ChxMsgBtnType.OK,
+                MessageBoxDefaultButton.Button1, string.Empty, string.Empty, string.Empty, ChxMsgType.OK);
+        }
+
+        public static void ShowInfoMsgWithLog(string Text)
+        {
+
+            ShowMsgMain(MsgTitle, Text, ChxMsgBtnType.OK,
+                MessageBoxDefaultButton.Button1, string.Empty, string.Empty, string.Empty, ChxMsgType.OK);
+        }
+
+        public static void ShowErrMsg(string Text)
+        {
+            ShowMsgMain(MsgTitle, Text, ChxMsgBtnType.OK,
+                MessageBoxDefaultButton.Button1, string.Empty, string.Empty, string.Empty, ChxMsgType.Error);
+        }
+
+        public static void ShowErrMsgWithLog(string Text)
+        {
+
+            ShowMsgMain(MsgTitle, Text, ChxMsgBtnType.OK,
+                MessageBoxDefaultButton.Button1, string.Empty, string.Empty, string.Empty, ChxMsgType.Error);
+        }
+
+        public static void ShowErrMsgWithLog(string Text, Exception ex)
+        {
+            ShowMsgMain(MsgTitle, Text, ChxMsgBtnType.OK,
+                MessageBoxDefaultButton.Button1, string.Empty, string.Empty, string.Empty, ChxMsgType.Error);
+        }
+
+        public static bool ShowYesNoMsg(string Text, MessageBoxDefaultButton MsgDefaultBtn)
+        {
+            DialogResult diaResultTmp =
+                ShowMsgMain(MsgTitle, Text, ChxMsgBtnType.OKCancel, MsgDefaultBtn, string.Empty, string.Empty, string.Empty, ChxMsgType.Ask);
+
+            if (diaResultTmp == DialogResult.OK) return true;
+
+            return false;
+        }
+
+        public static bool ShowAskMsg(string Text, string okBtnText, string CancelBtnText, MessageBoxDefaultButton MsgDefaultBtn)
+        {
+            DialogResult diaResultTmp =
+                ShowMsgMain(MsgTitle, Text, ChxMsgBtnType.Two, MsgDefaultBtn, okBtnText, CancelBtnText, string.Empty, ChxMsgType.Ask);
+
+            if (diaResultTmp == DialogResult.OK) return true;
+
+            return false;
+        }
+
+        private static DialogResult ShowMsgMain(string Title, string Text, ChxMsgBtnType MsgBtnType, MessageBoxDefaultButton DefaultBtn,
+            string LeftBtn, string RigthBtn, string MiddleBtn, ChxMsgType SoundType)
+        {
+          
+
+            Cursor csr = Cursor.Current;
+            Cursor.Current = Cursors.Default;
+            DialogResult diaResultTmp;
+            using (FrmMsg frm = new FrmMsg(Title, Text, MsgBtnType, DefaultBtn, LeftBtn, RigthBtn, MiddleBtn, SoundType))
+            {
+                diaResultTmp = frm.ShowDialog();
+            }
+
+            Cursor.Current = csr;
+
+ 
+            return diaResultTmp;
+        }
+        #endregion
     }
 
  

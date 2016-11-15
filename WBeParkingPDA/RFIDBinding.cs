@@ -6,6 +6,7 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using TCPark_PDA;
 
 namespace WBeParkingPDA
 {
@@ -37,7 +38,19 @@ namespace WBeParkingPDA
         {
             try
             {
-
+                string dbCarId="";
+                int capropseid =0;
+                if (Utility.IsETCExists(tb_eTagEPC.Text,  out dbCarId, out capropseid)) {
+                    tbCarId.Text = dbCarId;
+                    foreach (var o in ddlPurposeTypes.Items)
+                    {
+                        if (((CarPurposeTypes)o).Id == capropseid)
+                        {
+                            ddlPurposeTypes.SelectedItem = o;
+                            break;
+                        }
+                    }
+                }
                 NextFocus(tbCarId);
             }
             catch (Exception ex)
@@ -62,7 +75,10 @@ namespace WBeParkingPDA
                 //再開啟RFID
                 rfidscanner.EnableReader();
 
+                tbCarId.Text = "";
+
                 NextFocus(tb_eTagEPC);
+                
             }
             catch (Exception ex)
             {
@@ -133,16 +149,18 @@ namespace WBeParkingPDA
                         tb_eTagEPC.ReadOnly = true;
                         tb_eTagEPC.Enabled = false;
                         tb_eTagEPC.Focus();
-                        tb_eTagEPC.Text = "";
+      
+                        //tbCarId.Text = "";
                         tbCarId.ReadOnly = true;
-                        tbCarId.Enabled = false;
+                        tbCarId.ReadOnly = false;
+                        tbCarId.Enabled = true;
+                        ddlPurposeTypes.SelectedIndex = 0;
                         ddlPurposeTypes.Enabled = false;
                         btnSave.Enabled = false;
                         break;
                     case "tbCarId":
                         tb_eTagEPC.ReadOnly = true;
                         tb_eTagEPC.Enabled = false;
-
                         this.tbCarId.ReadOnly = false;
                         this.tbCarId.Enabled = true;
                         this.tbCarId.Text = String.Empty;
@@ -154,7 +172,7 @@ namespace WBeParkingPDA
                     case "ddlPurposeTypes":
                         tb_eTagEPC.ReadOnly = true;
                         tb_eTagEPC.Enabled = false;
-                        this.tbCarId.ReadOnly = true;
+                        tbCarId.ReadOnly = true;
                         this.tbCarId.Enabled = false;
                         this.ddlPurposeTypes.Enabled = true;
                         btnSave.Enabled = true;
@@ -221,7 +239,9 @@ namespace WBeParkingPDA
                     return;
                 }
                 logger.Info(string.Format("EPC={0},CarNumber={1},PurposeTypes={2}", tb_eTagEPC.Text, tbCarId.Text, selectedvaile.Name));
-                Utility.SaveETCTagBinding(tb_eTagEPC.Text, tbCarId.Text, selectedvaile.Id);               
+                Utility.SaveETCTagBinding(tb_eTagEPC.Text, tbCarId.Text, selectedvaile.Id);
+                tbCarId.Text = "";
+                tb_eTagEPC.Text = "";
 
                 if (MessageBox.Show(string.Format("'{0}' 與車號 '{1}({2})' 的綁定資料儲存成功!", tb_eTagEPC.Text, tbCarId.Text, selectedvaile.Name),
     "系統訊息", MessageBoxButtons.OK, MessageBoxIcon.Asterisk, MessageBoxDefaultButton.Button1) == DialogResult.OK)
@@ -237,6 +257,43 @@ namespace WBeParkingPDA
                 MessageBox.Show(ex.Message, "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Hand, MessageBoxDefaultButton.Button1);
             }
         }
+
+        private void tbCarId_GotFocus(object sender, EventArgs e)
+        {
+           ShowCarNoKeyBoard(' ');
+        }
+
+        private void ShowCarNoKeyBoard(char inputChar)
+        {
+            //GBL.Scanner.Off();
+            tbCarId.GotFocus -= new EventHandler(tbCarId_GotFocus);
+
+            bool bIsCancel;
+
+            string strTmpStrCar = string.Empty;
+
+            if (inputChar == ' ')
+                strTmpStrCar = Utility.GetStringByKeyBoard(string.Empty, KeyBoardInputType.CarNoWithOutCheck, out bIsCancel);
+            else
+                strTmpStrCar = Utility.GetStringByKeyBoard(tbCarId.Text, KeyBoardInputType.CarNoWithOutCheck, inputChar, out bIsCancel);
+
+            if (tbCarId.Text == string.Empty)
+            {
+                tbCarId.Text = strTmpStrCar;
+            }
+            else if (strTmpStrCar != string.Empty)
+            {
+                tbCarId.Text = strTmpStrCar;
+            }
+
+
+
+            tbCarId.GotFocus += new EventHandler(tbCarId_GotFocus);
+           
+        }
+
+
+
 
     }
 }

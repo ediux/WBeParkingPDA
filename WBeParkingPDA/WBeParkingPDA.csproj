@@ -88,11 +88,27 @@
     </Compile>
     <Compile Include="Classes\CarPurposeTypes.cs" />
     <Compile Include="Classes\CoreDLL.cs" />
+    <Compile Include="Classes\ETCBinding.cs" />
+    <Compile Include="Classes\KeyBoardHelper.cs" />
+    <Compile Include="Classes\KeyBoardHelperFactory.cs" />
     <Compile Include="Classes\LogProvider.cs" />
     <Compile Include="Classes\ReadManager.cs" />
     <Compile Include="Classes\RFIDScanner.cs" />
     <Compile Include="Classes\SQLiteHelper.cs" />
+    <Compile Include="Classes\SyncDataViewModel.cs" />
     <Compile Include="Classes\WebClientHelper.cs" />
+    <Compile Include="FrmKeyBoard.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmKeyBoard.designer.cs">
+      <DependentUpon>FrmKeyBoard.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FrmMsg.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmMsg.designer.cs">
+      <DependentUpon>FrmMsg.cs</DependentUpon>
+    </Compile>
     <Compile Include="Main.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -103,6 +119,12 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="BaseForm.resx">
       <DependentUpon>BaseForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmKeyBoard.resx">
+      <DependentUpon>FrmKeyBoard.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmMsg.resx">
+      <DependentUpon>FrmMsg.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Main.resx">
       <DependentUpon>Main.cs</DependentUpon>
