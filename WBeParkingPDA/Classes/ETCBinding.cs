@@ -10,5 +10,8 @@ namespace WBeParkingPDA
         public string ETCID { get; set; }
         public string CarID { get; set; }
         public Nullable<int> CarPurposeTypeID { get; set; }
+        public DateTime CreateTime { get; set; }
+        public DateTime? LastUpdateTiem { get; set; }
+        public DateTime? LastUploadTime { get; set; }
     }
 }

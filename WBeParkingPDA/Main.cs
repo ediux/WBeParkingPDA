@@ -38,11 +38,11 @@ namespace WBeParkingPDA
             {
                 if (((bool)e.Result))
                 {
-                    MessageBox.Show("同步成功!");
+                    Utility.ShowInfoMsg("同步成功!");
                 }
                 else
                 {
-                    MessageBox.Show("同步失敗!");
+                    Utility.ShowErrMsg("同步失敗!");
                 }
             }
         }
@@ -52,27 +52,44 @@ namespace WBeParkingPDA
             progressBar1.Value = e.ProgressPercentage;
             if (e.UserState is Exception)
             {
-                labelUploadStatus.Text = "傳送失敗!!"+((Exception)e.UserState).Message;
+                labelUploadStatus.Text = "傳送失敗!!" + ((Exception)e.UserState).Message;
             }
             else
             {
-                labelUploadStatus.Text = string.Format("{0}%", e.ProgressPercentage);
+                if (e.UserState is string)
+                {
+                    labelUploadStatus.Text = string.Format("{0},{1}%", e.UserState,e.ProgressPercentage);
+                }
+                else
+                {
+                    labelUploadStatus.Text = string.Format("{0}%", e.ProgressPercentage);
+                }
+                
             }
         }
 
         private void bgworker_DoWork(object sender, DoWorkEventArgs e)
         {
-            bgworker.ReportProgress(10);
-            WBeParkingPDA.Classes.WebClientHelper client = new WBeParkingPDA.Classes.WebClientHelper();
-            bgworker.ReportProgress(50);
+            bgworker.ReportProgress(0,"準備同步...");
+            WBeParkingPDA.Classes.WebClientHelper client = new WBeParkingPDA.Classes.WebClientHelper();            
             try
             {
-                SyncDataViewModel result = client.PostData(Utility.GetDBJson(), "http://192.168.2.80:5002/api/SQLiteSync");
+                bgworker.ReportProgress(30, "準備同步...");
+                SyncDataViewModel source = SyncDataViewModel.LoadFile(Utility.jsondbpath);
+                bgworker.ReportProgress(50, "連線中...");
+                SyncDataViewModel clonemem = source.CloneToUploadSync();
+                bgworker.ReportProgress(75, "上載資料中...");
+                clonemem = client.PostData(clonemem, (source.AppSettings["RemoteHost"] as string) + "/api/SQLiteSync");
+                bgworker.ReportProgress(90, "下載資料並處理...");
+                clonemem.AppSettings = source.AppSettings;
+                bgworker.ReportProgress(97, "下載資料並處理...");
+                SyncDataViewModel.SaveFile(Utility.jsondbpath, clonemem);
+                bgworker.ReportProgress(99, "同步即將完成!");
             }
             catch (Exception ex)
             {
-                bgworker.ReportProgress(50, ex);
-               
+                bgworker.ReportProgress(75, ex);
+
                 e.Result = false;
                 return;
             }

@@ -15,6 +15,13 @@ namespace WBeParkingPDA
         static log4net.ILog logger = log4net.LogManager.GetLogger(typeof(RFIDBinding));
 
         private RFIDScanner rfidscanner;
+        private SyncDataViewModel memDb;
+
+        private static string EPCID;
+        private static string memCarID;
+        private static int carpropuseid;
+
+        private bool isDataExists = false;
 
         public RFIDBinding()
         {
@@ -23,10 +30,14 @@ namespace WBeParkingPDA
 
                 InitializeComponent();
 
+                EPCID = "";
+                memCarID = "";
+                carpropuseid = 0;
 
                 rfidscanner = new RFIDScanner(this);
                 rfidscanner.TagInputBox = tb_eTagEPC;
                 rfidscanner.OnAfterTagRead += new EventHandler<ThingMagic.TagReadDataEventArgs>(rfidscanner_OnAfterTagRead);
+
             }
             catch (Exception ex)
             {
@@ -38,19 +49,26 @@ namespace WBeParkingPDA
         {
             try
             {
-                string dbCarId="";
-                int capropseid =0;
-                if (Utility.IsETCExists(tb_eTagEPC.Text,  out dbCarId, out capropseid)) {
-                    tbCarId.Text = dbCarId;
-                    foreach (var o in ddlPurposeTypes.Items)
-                    {
-                        if (((CarPurposeTypes)o).Id == capropseid)
-                        {
-                            ddlPurposeTypes.SelectedItem = o;
-                            break;
-                        }
-                    }
+                EPCID = tb_eTagEPC.Text;
+
+                isDataExists = false;
+                if (memDb.IsETCExists(EPCID, out memCarID, out carpropuseid))
+                {
+                    tbCarId.Text = memCarID;
+
+                    ddlPurposeTypes.SelectedItem = memDb.CarPurposeTypes.First(s => s.Id == carpropuseid);
+
+                    //foreach (var o in ddlPurposeTypes.Items)
+                    //{
+                    //    if (((CarPurposeTypes)o).Id == capropseid)
+                    //    {
+                    //        ddlPurposeTypes.SelectedItem = o;
+                    //        break;
+                    //    }
+                    //}
+                    isDataExists = true;
                 }
+
                 NextFocus(tbCarId);
             }
             catch (Exception ex)
@@ -67,23 +85,22 @@ namespace WBeParkingPDA
                 this.WindowState = FormWindowState.Maximized;
 
                 //先初始化資料庫
-                Utility.Initializedatabase();
+                memDb = SyncDataViewModel.LoadFile(Utility.jsondbpath);
+                //Utility.Initializedatabase();
 
                 //取得資料
-                Utility.GetCarPurposeTypesList(ddlPurposeTypes);
+                memDb.GetCarPurposeTypesList(ddlPurposeTypes);
 
                 //再開啟RFID
                 rfidscanner.EnableReader();
 
-                tbCarId.Text = "";
-
                 NextFocus(tb_eTagEPC);
-                
+
             }
             catch (Exception ex)
             {
                 logger.Error(ex.Message, ex);
-                MessageBox.Show(ex.Message, "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Hand, MessageBoxDefaultButton.Button1);
+                Utility.ShowErrMsg(ex.Message);
             }
 
         }
@@ -97,6 +114,11 @@ namespace WBeParkingPDA
             catch (Exception ex)
             {
                 logger.Error(ex.Message, ex);
+            }
+            finally
+            {
+                SyncDataViewModel.SaveFile(Utility.jsondbpath, memDb);
+                memDb = null;
             }
 
         }
@@ -149,32 +171,48 @@ namespace WBeParkingPDA
                         tb_eTagEPC.ReadOnly = true;
                         tb_eTagEPC.Enabled = false;
                         tb_eTagEPC.Focus();
-      
+
                         //tbCarId.Text = "";
                         tbCarId.ReadOnly = true;
-                        tbCarId.ReadOnly = false;
-                        tbCarId.Enabled = true;
+                        tbCarId.Enabled = false;
                         ddlPurposeTypes.SelectedIndex = 0;
                         ddlPurposeTypes.Enabled = false;
                         btnSave.Enabled = false;
                         break;
                     case "tbCarId":
-                        tb_eTagEPC.ReadOnly = true;
-                        tb_eTagEPC.Enabled = false;
-                        this.tbCarId.ReadOnly = false;
-                        this.tbCarId.Enabled = true;
-                        this.tbCarId.Text = String.Empty;
-                        this.tbCarId.BackColor = Color.FromArgb(255, 255, 192);
-                        this.tbCarId.Focus();
-                        this.ddlPurposeTypes.Enabled = false; ;
-                        this.btnSave.Enabled = false;
+                        if (isDataExists)
+                        {
+                            goto case "ddlPurposeTypes";
+                        }
+                        else
+                        {
+                            tb_eTagEPC.ReadOnly = true;
+                            tb_eTagEPC.Enabled = false;
+                            this.ddlPurposeTypes.Enabled = false; ;
+                            this.btnSave.Enabled = false;
+                            this.tbCarId.ReadOnly = false;
+                            this.tbCarId.Enabled = true;
+                            this.tbCarId.BackColor = Color.FromArgb(255, 255, 192);
+                            this.tbCarId.Focus();
+                        }
                         break;
                     case "ddlPurposeTypes":
-                        tb_eTagEPC.ReadOnly = true;
-                        tb_eTagEPC.Enabled = false;
-                        tbCarId.ReadOnly = true;
-                        this.tbCarId.Enabled = false;
-                        this.ddlPurposeTypes.Enabled = true;
+                        if (isDataExists)
+                        {
+                            tb_eTagEPC.ReadOnly = true;
+                            tb_eTagEPC.Enabled = false;
+                            tbCarId.ReadOnly = true;
+                            this.tbCarId.Enabled = false;
+                            this.ddlPurposeTypes.Enabled = false;
+                        }
+                        else
+                        {
+                            tb_eTagEPC.ReadOnly = true;
+                            tb_eTagEPC.Enabled = false;
+                            tbCarId.ReadOnly = true;
+                            this.tbCarId.Enabled = false;
+                            this.ddlPurposeTypes.Enabled = true;
+                        }
                         btnSave.Enabled = true;
                         btnSave.Focus();
                         break;
@@ -183,7 +221,7 @@ namespace WBeParkingPDA
                         TextBox.Focus();
                         break;
                 }
-                this.Refresh();
+                // this.Refresh();
                 Application.DoEvents();
             }
             catch (Exception ex)
@@ -201,12 +239,12 @@ namespace WBeParkingPDA
                 {
                     if (string.IsNullOrEmpty(tb_eTagEPC.Text))
                     {
-                        MessageBox.Show("請先掃描eTag!", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Hand, MessageBoxDefaultButton.Button1);
+                        Utility.ShowErrMsg("請先掃描eTag!");
                         return;
                     }
                     if (string.IsNullOrEmpty(tbCarId.Text))
                     {
-                        MessageBox.Show("車號不能為空!", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Hand, MessageBoxDefaultButton.Button1);
+                        Utility.ShowErrMsg("車號不能為空!");
                         return;
                     }
                 }
@@ -215,7 +253,7 @@ namespace WBeParkingPDA
             catch (Exception ex)
             {
                 logger.Error(ex.Message, ex);
-                MessageBox.Show(ex.Message, "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Hand, MessageBoxDefaultButton.Button1);
+                Utility.ShowErrMsg(ex.Message);
             }
 
         }
@@ -226,41 +264,46 @@ namespace WBeParkingPDA
 
             try
             {
+                isDataExists = false;
                 CarPurposeTypes selectedvaile = (CarPurposeTypes)ddlPurposeTypes.SelectedItem;
+                carpropuseid = selectedvaile.Id;
 
                 if (string.IsNullOrEmpty(tb_eTagEPC.Text))
                 {
-                    MessageBox.Show("請先掃描eTag!", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Hand, MessageBoxDefaultButton.Button1);
+                    Utility.ShowErrMsg("請先掃描eTag!");
                     return;
                 }
                 if (string.IsNullOrEmpty(tbCarId.Text))
                 {
-                    MessageBox.Show("車號不能為空!", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Hand, MessageBoxDefaultButton.Button1);
+                    Utility.ShowErrMsg("車號不能為空!");
                     return;
                 }
-                logger.Info(string.Format("EPC={0},CarNumber={1},PurposeTypes={2}", tb_eTagEPC.Text, tbCarId.Text, selectedvaile.Name));
-                Utility.SaveETCTagBinding(tb_eTagEPC.Text, tbCarId.Text, selectedvaile.Id);
+
+                logger.Info(string.Format("EPC={0},CarNumber={1},PurposeTypes={2}", EPCID, memCarID, selectedvaile.Name));
+                memDb.SaveETCTagBinding(EPCID, memCarID, carpropuseid);
+                SyncDataViewModel.SaveFile(Utility.jsondbpath, memDb);
+
+
+                Utility.ShowInfoMsg(string.Format("'{0}' 與車號 '{1}({2})' 的綁定資料儲存成功!", EPCID, memCarID, selectedvaile.Name));
+
+                NextFocus(tb_eTagEPC);
+                memCarID = "";
+                EPCID = "";
                 tbCarId.Text = "";
                 tb_eTagEPC.Text = "";
 
-                if (MessageBox.Show(string.Format("'{0}' 與車號 '{1}({2})' 的綁定資料儲存成功!", tb_eTagEPC.Text, tbCarId.Text, selectedvaile.Name),
-    "系統訊息", MessageBoxButtons.OK, MessageBoxIcon.Asterisk, MessageBoxDefaultButton.Button1) == DialogResult.OK)
-                {
-
-                    NextFocus(tb_eTagEPC);
-                }
-                                                
             }
             catch (Exception ex)
             {
+                NextFocus(btnSave);
                 logger.Error(ex.Message, ex);
-                MessageBox.Show(ex.Message, "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Hand, MessageBoxDefaultButton.Button1);
+                Utility.ShowErrMsg(ex.Message);
             }
         }
 
         private void tbCarId_GotFocus(object sender, EventArgs e)
         {
-           ShowCarNoKeyBoard(' ');
+            ShowCarNoKeyBoard(' ');
         }
 
         private void ShowCarNoKeyBoard(char inputChar)
@@ -279,17 +322,20 @@ namespace WBeParkingPDA
 
             if (tbCarId.Text == string.Empty)
             {
+                memCarID = strTmpStrCar;
                 tbCarId.Text = strTmpStrCar;
             }
             else if (strTmpStrCar != string.Empty)
             {
+                memCarID = strTmpStrCar;
                 tbCarId.Text = strTmpStrCar;
             }
-
+            //memDb.SaveETCTagBinding(tb_eTagEPC.Text, tbCarId.Text, 0);
+            NextFocus(ddlPurposeTypes);
 
 
             tbCarId.GotFocus += new EventHandler(tbCarId_GotFocus);
-           
+
         }
 
 

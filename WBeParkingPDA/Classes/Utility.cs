@@ -24,11 +24,15 @@ namespace WBeParkingPDA
         public static LogProvider Logger = new LogProvider();
         
         private static PowerManager _powerMgr = null;
+
+        internal static string programRootPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().GetName().CodeBase);
+
+        internal static string appPath = Path.Combine(programRootPath, @"Config.txt");
+
+        internal static string dbPath = Path.Combine(programRootPath, @"wbeparking.db");
+
+        internal static string jsondbpath = Path.Combine(programRootPath, @"wbeparking.json");
        
-        static string appPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().GetName().CodeBase) + @"/Config.txt";
-
-        static string dbPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().GetName().CodeBase) + @"/wbeparking.db";
-
         public static PowerManager PowerManager
         {
             get
@@ -331,138 +335,10 @@ namespace WBeParkingPDA
 
         }
 
-        public static void GetCarPurposeTypesList(ComboBox ddl)
-        {
-            SQLiteHelper sqlce = null;
-            try
-            {
-                sqlce = new SQLiteHelper(dbPath);
-                DataTable dt = sqlce.select(@"Select Id,Name,Void From CarPurposeTypes Where Void=0");
-                
-                if (dt != null && dt.Rows.Count > 0)
-                {
+        
 
-                    ddl.Items.Clear();
-                    ddl.DisplayMember = "Name";
-                    ddl.ValueMember = "Id";
 
-                    foreach (DataRow row in dt.Rows)
-                    {
-                        var objRow = new CarPurposeTypes();
-                        objRow.Id = int.Parse(string.Format("{0}", row["Id"]));
-                        objRow.Name = (string)row["Name"];
-                        objRow.Void = (bool)row["Void"];
-
-                        ddl.Items.Add(objRow);
-                    }
-
-                    ddl.SelectedIndex = 0;
-                }
-
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex.Message, ex);
-                throw ex;
-            }
-
-        }
-
-        public static bool IsETCExists(string EPCID, out string OCarId, out int OPropseId)
-        {
-            SQLiteHelper sqlce = null;
-            try
-            {
-                sqlce = new SQLiteHelper(dbPath);
-                DataTable dt = sqlce.select(@"Select ETCID,CarID,CarPurposeTypeID From ETCBinding Where ETCID=@p0)", EPCID);
-                OCarId = string.Empty;
-                OPropseId = 0;
-
-                if (dt != null && dt.Rows.Count >= 1)
-                {
-                    DataRow row = dt.Rows[0];
-                    OCarId = row["CarID"] as string;
-                    OPropseId = (int)row["CarPurposeTypeID"];
-                    return true;
-                }
-
-                return false;
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex.Message, ex);
-                throw ex;
-            }
-        }
-        public static void SaveETCTagBinding(string EPCID, string CarId, int PropseId)
-        {
-            SQLiteHelper sqlce = null;
-            try
-            {
-                sqlce = new SQLiteHelper(dbPath);
-
-                if (IsETCExists(EPCID, out CarId, out PropseId))
-                {
-                    sqlce.execute("Update ETCBinding Set ETCID=@p0,CarID=@p1,CarPurposeTypeID=@p2 Where ETCID=@p0", EPCID, CarId, PropseId);
-                }
-                else
-                {
-                    sqlce.execute(@"Insert Into ETCBinding  (ETCID,CarID,CarPurposeTypeID)
-        Values(@p0,@p1,@p2);", EPCID, CarId, PropseId);
-                }
-
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex.Message, ex);
-                throw;
-            }
-        }
-        public static SyncDataViewModel GetDBJson()
-        {
-            SQLiteHelper sqlce = null;
-            SyncDataViewModel model = new SyncDataViewModel();
-            try
-            {
-                sqlce = new SQLiteHelper(dbPath);
-                DataTable dt = sqlce.select(@"Select ETCID,CarID,CarPurposeTypeID From ETCBinding");
-
-                if (dt != null && dt.Rows.Count > 0)
-                {
-                    foreach (DataRow row in dt.Rows)
-                    {
-                        ETCBinding etcdata = new ETCBinding() { 
-                            CarID = (string)row["CarID"], 
-                            ETCID = (string)row["ETCID"], 
-                            CarPurposeTypeID = (int)row["CarPurposeTypeID"]
-                        };
-                        model.ETCBinding.Add(etcdata);
-                    }
-                }
-                sqlce = new SQLiteHelper(dbPath);
-                DataTable dt1 = sqlce.select(@"Select Id,Name,Void From CarPurposeTypes Where Void=0");
-                if (dt1 != null && dt1.Rows.Count > 0)
-                {
-                    foreach (DataRow row in dt1.Rows)
-                    {
-                        CarPurposeTypes cartype = new CarPurposeTypes()
-                        {
-                            Id = int.Parse(string.Format("{0}", row["Id"])),
-                            Name = (string)row["Name"],
-                            Void = (bool)row["Void"]
-                        };
-                        model.CarPurposeTypes.Add(cartype);
-                    }
-                }
-
-                return model;
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex.Message, ex);
-                return model;
-            }
-        }
+ 
 
         public static string GetStringByKeyBoard(string strStart, KeyBoardInputType type)
         {
@@ -497,7 +373,9 @@ namespace WBeParkingPDA
                 return frm.strInput;
             }
         }
-        public const string  MsgTitle = "華邦eParking";
+        
+        public const string  MsgTitle = "華邦eParking";        
+
         #region 秀訊息
         public static void ShowInfoMsg(string Text)
         {
