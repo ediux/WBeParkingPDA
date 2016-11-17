@@ -32,7 +32,7 @@ namespace WBeParkingPDA
         internal static string dbPath = Path.Combine(programRootPath, @"wbeparking.db");
 
         internal static string jsondbpath = Path.Combine(programRootPath, @"wbeparking.json");
-       
+        //internal static string jsondbpath = @"\\Program Files\WBeParkingPDA\wbeparking.json";
         public static PowerManager PowerManager
         {
             get
@@ -377,10 +377,11 @@ namespace WBeParkingPDA
         public const string  MsgTitle = "華邦eParking";        
 
         #region 秀訊息
-        public static void ShowInfoMsg(string Text)
+        public static DialogResult ShowInfoMsg(string Text)
         {
-            ShowMsgMain(MsgTitle, Text, ChxMsgBtnType.OK,
+             ShowMsgMain(MsgTitle, Text, ChxMsgBtnType.OK,
                 MessageBoxDefaultButton.Button1, string.Empty, string.Empty, string.Empty, ChxMsgType.OK);
+             return DialogResult.OK;
         }
 
         public static void ShowInfoMsgWithLog(string Text)

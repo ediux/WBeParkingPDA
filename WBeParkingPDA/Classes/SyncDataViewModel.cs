@@ -98,7 +98,19 @@ namespace WBeParkingPDA
                 int carpid;
                 if (!IsETCExists(EPCID, out tmpCarId, out carpid))
                 {
-                    etcbinding.Add(new ETCBinding() { CarID = CarId, CarPurposeTypeID = PropseId, ETCID = EPCID, CreateTime= DateTime.Now });
+                    etcbinding.Add(new ETCBinding() { CarID = CarId, CarPurposeTypeID = PropseId, ETCID = EPCID, CreateTime = DateTime.Now });
+                }
+                else
+                {
+                    ETCBinding existdata = etcbinding.First(w => w.ETCID.Equals(EPCID, StringComparison.InvariantCultureIgnoreCase));
+
+                    existdata.LastUpdateTiem = DateTime.Now;
+                    existdata.LastUploadTime = null;
+                    existdata.CarID = CarId;
+                    existdata.CarPurposeTypeID = PropseId;
+
+                    etcbinding.Remove(existdata);
+                    etcbinding.Add(existdata);
                 }
             }
             catch (Exception ex)
@@ -148,7 +160,10 @@ namespace WBeParkingPDA
                         model.AppSettings.Add("RemoteHost", "http://10.6.10.116");
 #endif
                         filecontent = Newtonsoft.Json.JsonConvert.SerializeObject(model);
-                        jsonFile.Write(Encoding.UTF8.GetBytes(filecontent), 0, filecontent.Length);
+                        StreamWriter jsonwriter = new StreamWriter(jsonFile);
+                        jsonwriter.WriteLine(filecontent);
+                        jsonwriter.Close();
+                       // jsonFile.Write(Encoding.UTF8.GetBytes(filecontent), 0, filecontent.Length);
                     }
                     jsonReader.Close();
                     jsonFile.Close();
