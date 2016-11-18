@@ -120,18 +120,26 @@ namespace WBeParkingPDA
             }
             lock (readerLock)
             {
-                if (null == _rdr)
+                try
                 {
-                    //Modify for could not turn on issue
-                    CoreDLL.PowerPolicyNotify(PPNMessage.PPN_UNATTENDEDMODE, 1);
-                    DebugLog_Log_ToDisk("Set PPN_UNATTENDEDMODE to 1");
+                    if (null == _rdr)
+                    {
+                        //Modify for could not turn on issue
+                        CoreDLL.PowerPolicyNotify(PPNMessage.PPN_UNATTENDEDMODE, 1);
+                        DebugLog_Log_ToDisk("Set PPN_UNATTENDEDMODE to 1");
 
-                    _rdr = RFIDScanner.ConnectReader();
-                    EnableUnattendedReaderMode(Utility.ReaderPortName);
+                        _rdr = RFIDScanner.ConnectReader();
+                        EnableUnattendedReaderMode(Utility.ReaderPortName);
 
-                    //_rdr.ParamSet("/reader/powerMode", Reader.PowerMode.MEDSAVE);
-                    _rdr.ParamSet("/reader/powerMode", Reader.PowerMode.FULL);
+                        //_rdr.ParamSet("/reader/powerMode", Reader.PowerMode.MEDSAVE);
+                        _rdr.ParamSet("/reader/powerMode", Reader.PowerMode.FULL);
+                    }
                 }
+                catch (Exception)
+                {
+                    throw;
+                }
+               
             }
         }
 
@@ -287,6 +295,7 @@ namespace WBeParkingPDA
 
                 //Modify for could not turn on issue
                 ForceDisconnect();
+                throw ex;
             }
         }
 
@@ -322,6 +331,7 @@ namespace WBeParkingPDA
                 //StatusLog.OnLog(lastErrorMessage);
                 OnReaderEvent(EventCode.READER_RECOVERY_FAILED);
                 ReadMgrDiskLog("READER_RECOVERY_FAILED");
+                throw ex;
             }
         }
 
@@ -360,6 +370,7 @@ namespace WBeParkingPDA
                         // has been shut down without the driver being closed
                         // (e.g., host goes to sleep while a connection is open)
                         ReadMgrDiskLog("Caught IOException in ForceDisconnect: " + ex.ToString());
+                        throw ex;
                     }
                     catch (Exception ex)
                     {
