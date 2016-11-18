@@ -138,6 +138,7 @@ namespace WBeParkingPDA
 
         private void btnRFIDBinding_Click(object sender, EventArgs e)
         {
+            Cursor.Current = Cursors.WaitCursor;
             RFIDBinding rfidBindingForm = new RFIDBinding();
             rfidBindingForm.Show();
         }

@@ -56,7 +56,7 @@
             this.panelUploadStatus.Controls.Add(this.labelUploadStatus);
             this.panelUploadStatus.Controls.Add(this.progressBar1);
             this.panelUploadStatus.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.panelUploadStatus.Location = new System.Drawing.Point(0, 700);
+            this.panelUploadStatus.Location = new System.Drawing.Point(0, 662);
             this.panelUploadStatus.Name = "panelUploadStatus";
             this.panelUploadStatus.Size = new System.Drawing.Size(480, 100);
             this.panelUploadStatus.Visible = false;
