@@ -393,12 +393,12 @@ namespace WBeParkingPDA
                 }
 
                 logger.Info(string.Format("EPC={0},CarNumber={1},PurposeTypes={2}", EPCID, memCarID, selectedvaile.Name));
-                
+                SaveDB();
                 memDb.SaveETCTagBinding(EPCID, memCarID, carpropuseid);
 
                 if (Utility.ShowInfoMsg(string.Format("'{0}' 與車號 '{1}({2})' 的綁定資料儲存成功!", EPCID, memCarID, selectedvaile.Name)) == DialogResult.OK)
                 {
-                    SaveDB();
+                    
                     memCarID = "";
                     EPCID = "";
                     tbCarId.Text = "";
