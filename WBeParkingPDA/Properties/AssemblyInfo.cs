@@ -29,7 +29,7 @@ using System.Runtime.InteropServices;
 //      組建編號
 //      修訂編號
 //
-[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyVersion("1.2.0.0")]
 
 // 下列屬性將會抑制 FxCop 警告 "CA2232 : Microsoft.Usage : 將 STAThreadAttribute 加入組件"
 // 因為裝置應用程式不支援 STA 執行緒。

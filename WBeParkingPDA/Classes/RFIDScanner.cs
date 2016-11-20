@@ -32,9 +32,6 @@ namespace WBeParkingPDA
 
         public TextBox TagInputBox { get { return taginputbox; } set { taginputbox = value; } }
 
-        //private Label scannerstatuslabel;
-        //public Label ScannerStatusLabel { get { return scannerstatuslabel; } set { scannerstatuslabel = value; } }
-
         private Form _form;
 
         //Sounds
@@ -495,11 +492,17 @@ namespace WBeParkingPDA
                     if (taginputbox != null)
                     {
                         playBeepSound();
+                        try
+                        {
 
-                        taginputbox.Text = e.TagReadData.EpcString;
+                            taginputbox.Text = e.TagReadData.EpcString;
+                            logger.Info(string.Format("EPC={0}", e.TagReadData.Epc));
+                        }
+                        catch { }
+
                         taginputbox.Enabled = false;
                         taginputbox.Visible = true;
-                        logger.Info(string.Format("EPC={0}", e.TagReadData.Epc));
+                        
 
                         if (OnAfterTagRead != null)
                         {

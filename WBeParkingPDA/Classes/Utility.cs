@@ -440,7 +440,9 @@ namespace WBeParkingPDA
             DialogResult diaResultTmp;
             using (FrmMsg frm = new FrmMsg(Title, Text, MsgBtnType, DefaultBtn, LeftBtn, RigthBtn, MiddleBtn, SoundType))
             {
+                frm.TopMost = true;
                 diaResultTmp = frm.ShowDialog();
+
             }
 
             Cursor.Current = csr;

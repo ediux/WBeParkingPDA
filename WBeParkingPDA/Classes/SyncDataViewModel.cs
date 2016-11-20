@@ -75,7 +75,7 @@ namespace WBeParkingPDA
                     if (data != null)
                     {
                         OCarId = data.CarID;
-                        OPropseId = data.CarPurposeTypeID??0;
+                        OPropseId = data.CarPurposeTypeID ?? 0;
                         return true;
                     }
                 }
@@ -124,7 +124,7 @@ namespace WBeParkingPDA
         {
             SyncDataViewModel cloneobject = new SyncDataViewModel();
 
-            foreach (ETCBinding item in etcbinding.Where(w=>w.LastUploadTime==null).ToList())
+            foreach (ETCBinding item in etcbinding.Where(w => w.LastUploadTime == null).ToList())
             {
                 item.LastUploadTime = DateTime.Now;
                 cloneobject.ETCBinding.Add(item);
@@ -141,9 +141,10 @@ namespace WBeParkingPDA
 
             try
             {
-
-                    FileStream jsonFile = new FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
-                    StreamReader jsonReader = new StreamReader(jsonFile, Encoding.UTF8);
+                if (System.IO.File.Exists(Utility.jsondbpath))
+                {
+                    FileStream jsonFile = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.Read);
+                    StreamReader jsonReader = new StreamReader(jsonFile, Encoding.UTF8);  
                     string filecontent = jsonReader.ReadToEnd();
                     if (!string.IsNullOrEmpty(filecontent))
                     {
@@ -151,30 +152,39 @@ namespace WBeParkingPDA
                     }
                     else
                     {
-                        model = new SyncDataViewModel();
-                        model.CarPurposeTypes.Add(new CarPurposeTypes() { Id = 1, Name = "自用車", Void = false });
-                        model.CarPurposeTypes.Add(new CarPurposeTypes() { Id = 2, Name = "公務車", Void = false });
-#if DEBUG
-                        model.AppSettings.Add("RemoteHost", "http://61.216.6.217:5002");
-#else
-                        model.AppSettings.Add("RemoteHost", "http://10.6.10.116");
-#endif
-                        filecontent = Newtonsoft.Json.JsonConvert.SerializeObject(model);
-                        StreamWriter jsonwriter = new StreamWriter(jsonFile);
-                        jsonwriter.WriteLine(filecontent);
-                        jsonwriter.Close();
-                       // jsonFile.Write(Encoding.UTF8.GetBytes(filecontent), 0, filecontent.Length);
+                        model = GetDefaultProperies(model);
                     }
                     jsonReader.Close();
                     jsonFile.Close();
                     return model;
-       
+                }
+
+                model = GetDefaultProperies(model);
+                return model;
+
             }
             catch (Exception ex)
             {
+                if (model == null)
+                {
+                    model = GetDefaultProperies(model);
+                }
                 logger.Error(ex.Message, ex);
                 return model;
             }
+        }
+
+        private static SyncDataViewModel GetDefaultProperies(SyncDataViewModel model)
+        {
+            model = new SyncDataViewModel();
+            model.CarPurposeTypes.Add(new CarPurposeTypes() { Id = 1, Name = "自用車", Void = false });
+            model.CarPurposeTypes.Add(new CarPurposeTypes() { Id = 2, Name = "公務車", Void = false });
+#if DEBUG
+            model.AppSettings.Add("RemoteHost", "http://61.216.6.217:5002");
+#else
+            model.AppSettings.Add("RemoteHost", "http://202.39.229.116");
+#endif
+            return model;
         }
 
         public static void SaveFile(string path, SyncDataViewModel database)
@@ -185,7 +195,10 @@ namespace WBeParkingPDA
                 {
                     FileStream jsonFile = new FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
                     StreamWriter jsonWriter = new StreamWriter(jsonFile, Encoding.UTF8);
+                    //Newtonsoft.Json.JsonTextWriter jwriter = new Newtonsoft.Json.JsonTextWriter(jsonWriter);
+                    //jwriter.Flush();
                     jsonWriter.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(database));
+                    //jwriter.Close();
                     jsonWriter.Close();
                     jsonFile.Close();
                 }

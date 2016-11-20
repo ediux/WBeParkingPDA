@@ -42,7 +42,7 @@
             // 
             this.btnBackTo.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnBackTo.Font = new System.Drawing.Font("Tahoma", 22F, System.Drawing.FontStyle.Bold);
-            this.btnBackTo.Location = new System.Drawing.Point(3, 759);
+            this.btnBackTo.Location = new System.Drawing.Point(3, 359);
             this.btnBackTo.Name = "btnBackTo";
             this.btnBackTo.Size = new System.Drawing.Size(161, 38);
             this.btnBackTo.TabIndex = 0;
@@ -66,7 +66,7 @@
             this.tb_eTagEPC.Location = new System.Drawing.Point(79, 83);
             this.tb_eTagEPC.Name = "tb_eTagEPC";
             this.tb_eTagEPC.ReadOnly = true;
-            this.tb_eTagEPC.Size = new System.Drawing.Size(398, 42);
+            this.tb_eTagEPC.Size = new System.Drawing.Size(158, 42);
             this.tb_eTagEPC.TabIndex = 2;
             // 
             // tbCarId
@@ -76,10 +76,9 @@
             this.tbCarId.Font = new System.Drawing.Font("Tahoma", 22F, System.Drawing.FontStyle.Regular);
             this.tbCarId.Location = new System.Drawing.Point(79, 131);
             this.tbCarId.Name = "tbCarId";
-            this.tbCarId.Size = new System.Drawing.Size(398, 42);
+            this.tbCarId.Size = new System.Drawing.Size(158, 42);
             this.tbCarId.TabIndex = 4;
             this.tbCarId.GotFocus += new System.EventHandler(this.tbCarId_GotFocus);
-            this.tbCarId.KeyUp += new System.Windows.Forms.KeyEventHandler(this.textBox2_KeyUp);
             // 
             // lblCarID
             // 
@@ -104,16 +103,15 @@
             this.ddlPurposeTypes.Font = new System.Drawing.Font("Tahoma", 22F, System.Drawing.FontStyle.Regular);
             this.ddlPurposeTypes.Location = new System.Drawing.Point(79, 179);
             this.ddlPurposeTypes.Name = "ddlPurposeTypes";
-            this.ddlPurposeTypes.Size = new System.Drawing.Size(398, 43);
+            this.ddlPurposeTypes.Size = new System.Drawing.Size(158, 43);
             this.ddlPurposeTypes.TabIndex = 8;
-            this.ddlPurposeTypes.KeyUp += new System.Windows.Forms.KeyEventHandler(this.ddlPurposeTypes_KeyUp);
             // 
             // btnSave
             // 
             this.btnSave.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.btnSave.Enabled = false;
             this.btnSave.Font = new System.Drawing.Font("Tahoma", 22F, System.Drawing.FontStyle.Bold);
-            this.btnSave.Location = new System.Drawing.Point(373, 228);
+            this.btnSave.Location = new System.Drawing.Point(133, 228);
             this.btnSave.Name = "btnSave";
             this.btnSave.Size = new System.Drawing.Size(104, 40);
             this.btnSave.TabIndex = 13;
@@ -125,7 +123,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.BackColor = System.Drawing.Color.Silver;
-            this.ClientSize = new System.Drawing.Size(480, 800);
+            this.ClientSize = new System.Drawing.Size(240, 400);
             this.Controls.Add(this.btnSave);
             this.Controls.Add(this.ddlPurposeTypes);
             this.Controls.Add(this.lblPurposeTypes);
@@ -137,7 +135,6 @@
             this.Location = new System.Drawing.Point(0, 0);
             this.Name = "RFIDBinding";
             this.Text = "RFIDBinding";
-            this.TopMost = true;
             this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.Load += new System.EventHandler(this.RFIDBinding_Load);
             this.Closing += new System.ComponentModel.CancelEventHandler(this.RFIDBinding_Closing);
