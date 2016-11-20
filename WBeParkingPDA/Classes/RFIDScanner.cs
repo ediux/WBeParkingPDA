@@ -32,9 +32,6 @@ namespace WBeParkingPDA
 
         public TextBox TagInputBox { get { return taginputbox; } set { taginputbox = value; } }
 
-        private Label scannerstatuslabel;
-        public Label ScannerStatusLabel { get { return scannerstatuslabel; } set { scannerstatuslabel = value; } }
-
         private Form _form;
 
         //Sounds
@@ -44,6 +41,7 @@ namespace WBeParkingPDA
 
 
         public event EventHandler<TagReadDataEventArgs> OnAfterTagRead;
+        public event EventHandler<ReaderExceptionEventArgs> OnTagReadException;
 
         public RFIDScanner(Form form)
         {
@@ -54,60 +52,61 @@ namespace WBeParkingPDA
 
         public static Reader ConnectReader()
         {
-
-            Reader objReader = null;
-            string readerPort = null;
-            List<string> ports = new List<string>();
-
-            logger.Debug("Starting ConnectReader");
-
-            // First, try last known-good port
-            Dictionary<string, string> properties = Utility.GetProperties();
-
-
-            string lastPort = properties["comport"];
-
-            System.Diagnostics.Debug.Write(string.Format("lastPort = {0}", lastPort));
-
-            logger.Debug("lastPort = " + lastPort);
-            if (lastPort != "")
+            try
             {
-                int retries = 3;
-                while ((0 < retries) && (null == objReader))
+                Reader objReader = null;
+                string readerPort = null;
+                List<string> ports = new List<string>();
+
+                logger.Debug("Starting ConnectReader");
+
+                // First, try last known-good port
+                Dictionary<string, string> properties = Utility.GetProperties();
+
+
+                string lastPort = properties["comport"];
+
+                System.Diagnostics.Debug.Write(string.Format("lastPort = {0}", lastPort));
+
+                logger.Debug("lastPort = " + lastPort);
+                if (lastPort != "")
                 {
-                    logger.Debug("Trying last-known port: " + lastPort
-                     + " (" + retries.ToString() + " tries left)");
-
-                    retries -= 1;
-                    readerPort = lastPort;
-                    objReader = ConnectReader(lastPort);
-                    if (null != objReader) { break; }
-                    Thread.Sleep(1000);
-                }
-            }
-            if (null == objReader)
-            {
-                // Next, try all known ports
-                // DiskLog.Log("Enumerating serial ports...");
-                string[] portnames = System.IO.Ports.SerialPort.GetPortNames();
-
-                //Add Port names
-                int newsize = portnames.Count() + 1;
-                Array.Resize(ref portnames, newsize);
-                portnames[newsize - 1] = "COM8";
-                //
-
-                Array.Reverse(portnames);
-                ports.AddRange(portnames);
-                {
-                    StringBuilder sb = new StringBuilder();
-                    sb.Append("Detected Ports:");
-                    foreach (string port in ports)
+                    int retries = 3;
+                    while ((0 < retries) && (null == objReader))
                     {
-                        sb.Append(" " + port.ToString());
+                        logger.Debug("Trying last-known port: " + lastPort
+                         + " (" + retries.ToString() + " tries left)");
+
+                        retries -= 1;
+                        readerPort = lastPort;
+                        objReader = ConnectReader(lastPort);
+                        if (null != objReader) { break; }
+                        Thread.Sleep(1000);
                     }
-                    // logger.Debug(sb.ToString());
                 }
+                if (null == objReader)
+                {
+                    // Next, try all known ports
+                    // DiskLog.Log("Enumerating serial ports...");
+                    string[] portnames = System.IO.Ports.SerialPort.GetPortNames();
+
+                    //Add Port names
+                    int newsize = portnames.Count() + 1;
+                    Array.Resize(ref portnames, newsize);
+                    portnames[newsize - 1] = "COM8";
+                    //
+
+                    Array.Reverse(portnames);
+                    ports.AddRange(portnames);
+                    {
+                        StringBuilder sb = new StringBuilder();
+                        sb.Append("Detected Ports:");
+                        foreach (string port in ports)
+                        {
+                            sb.Append(" " + port.ToString());
+                        }
+                        // logger.Debug(sb.ToString());
+                    }
 #if DEBUG
                 {
                     StringBuilder sb = new StringBuilder();
@@ -119,35 +118,35 @@ namespace WBeParkingPDA
                     // DiskLog.Log(sb.ToString());
                 }
 #endif
-                foreach (string port in ports)
-                {
-                    switch (port.ToUpper())
+                    foreach (string port in ports)
                     {
-                        case "COM0":
-                        case "COM1":  // physical DB-9 port
-                        case "COM2":  // GPS port
-                        case "COM3":  // GPS intermediate driver
-                            //logger.Debug("Skipping port " + port);
-                            continue;
-                    }
-                    //   logger.Debug("Trying port " + port);
+                        switch (port.ToUpper())
+                        {
+                            case "COM0":
+                            case "COM1":  // physical DB-9 port
+                            case "COM2":  // GPS port
+                            case "COM3":  // GPS intermediate driver
+                                //logger.Debug("Skipping port " + port);
+                                continue;
+                        }
+                        //   logger.Debug("Trying port " + port);
 #if DEBUG
                     // DiskLog.Log("Trying port " + port);
 #endif
-                    //Connect to the usb reader
-                    readerPort = port;
-                    objReader = ConnectReader(port);
-                    if (null != objReader)
-                    {
-                        StringBuilder portBlacklistSB = new StringBuilder();
-                        foreach (string portName in ports)
+                        //Connect to the usb reader
+                        readerPort = port;
+                        objReader = ConnectReader(port);
+                        if (null != objReader)
                         {
-                            if (portName != readerPort)
+                            StringBuilder portBlacklistSB = new StringBuilder();
+                            foreach (string portName in ports)
                             {
-                                portBlacklistSB.Append(" " + portName + " ");
+                                if (portName != readerPort)
+                                {
+                                    portBlacklistSB.Append(" " + portName + " ");
+                                }
                             }
-                        }
-                        string portBlacklist = portBlacklistSB.ToString();
+                            string portBlacklist = portBlacklistSB.ToString();
 
 #if DEBUG
                         string message =
@@ -155,31 +154,39 @@ namespace WBeParkingPDA
                             + "portBlacklist: " + portBlacklist;
                         // DiskLog.Log(message);
 #endif
-                        break;
+                            break;
+                        }
                     }
                 }
-            }
 
-            // Did we find a reader?
-            if (objReader == null)
-            {
-                string message = "RFID reader was not found. Please check the USB connection or re-install the FTDI driver";
-                logger.Error(message);
-                throw new Exception(message);
-            }
-            else
-            {
+                // Did we find a reader?
+                if (objReader == null)
+                {
+                    string message = "RFID reader was not found. Please check the USB connection or re-install the FTDI driver";
+                    logger.Error(message);
+                    throw new Exception(message);
+                }
+                else
+                {
 #if DEBUG
                 logger.Debug("Saving reader port " + readerPort);
 #endif
-                properties["comport"] = readerPort;
-                Utility.SaveConfigurations(properties);
+                    properties["comport"] = readerPort;
+                    Utility.SaveConfigurations(properties);
 #if DEBUG
                 logger.Debug("Connected: " + readerPort);
 #endif
-                logger.Info("Connected to reader on port " + readerPort);
-                return objReader;
+                    logger.Info("Connected to reader on port " + readerPort);
+                    return objReader;
+                }
             }
+            catch (Exception)
+            {
+                throw;
+            }
+
+
+           
         }
 
         public static Reader ConnectReader(string port)
@@ -204,7 +211,9 @@ namespace WBeParkingPDA
             catch (Exception ex)
             {
                 logger.Error("In ConnectReader(" + port + "): " + ex.ToString());
+                
                 objReader = null;
+               
             }
             return objReader;
         }
@@ -228,12 +237,15 @@ namespace WBeParkingPDA
 
                 if (_ObjReader == null)
                 {
-                    if (scannerstatuslabel != null)
+                    //if (scannerstatuslabel != null)
+                    //{
+                    //    scannerstatuslabel.Text = "RFID Reader Failed!";
+                    //    scannerstatuslabel.Visible = true;
+                    //}
+                    if (OnTagReadException != null)
                     {
-                        scannerstatuslabel.Text = "RFID Reader Failed!";
-                        scannerstatuslabel.Visible = true;
+                        OnTagReadException.Invoke(this,new ReaderExceptionEventArgs(new ReaderException("RFID Reader Failed!")));
                     }
-
                     return;
                 }
 
@@ -247,11 +259,13 @@ namespace WBeParkingPDA
                     switch (BatteryStatusCheck())
                     {
                         case 1:     //Battery percentage low
-                            MessageBox.Show("Battery level is too low to read tags.");
-                            return;
+                            throw new Exception("Battery level is too low to read tags.");
+                            //MessageBox.Show();
+                            //return;
                         case 2:     //Battery Voltage low
-                            MessageBox.Show("Battery voltage is too low to read tags.");
-                            return;
+                            throw new Exception("Battery voltage is too low to read tags.");
+                            //MessageBox.Show();
+                            //return;
                     }
                     // MCS--
 
@@ -309,7 +323,8 @@ namespace WBeParkingPDA
                         Utility.SetReaderSettings(ReadMgr.GetReader(), properties);
                     }
                     else
-                        MessageBox.Show("properties are null");
+                        throw new Exception("properties are null");
+                        //MessageBox.Show("properties are null");
                     //set the read plan and filter
                     TagFilter filter;
                     int addressToRead = int.Parse(properties["selectionaddress"]);
@@ -368,7 +383,8 @@ namespace WBeParkingPDA
                 }
                 catch (Exception ex)
                 {
-                    logger.Error(ex.ToString());
+                    
+                    writeErrorLog(ex.Message, ex);
                     ReadMgr.GetReader().ParamSet("/reader/powerMode", Reader.PowerMode.MAXSAVE);
                     properties["isreading"] = "no";
                     Utility.SaveConfigurations(properties);
@@ -380,11 +396,12 @@ namespace WBeParkingPDA
                 }
             }
             catch (Exception ex)
-            {
-                logger.Error(ex.ToString());
+            {              
+                writeErrorLog(ex.ToString(), ex);
                 if (-1 != ex.Message.IndexOf("RFID reader was not found"))
                 {
-                    MessageBox.Show(ex.Message, "Error");
+                    //MessageBox.Show(ex.Message, "Error");
+                    throw ex;
                 }
                 else
                 {
@@ -427,8 +444,8 @@ namespace WBeParkingPDA
                 }
             }
             catch (Exception ex)
-            {
-                logger.Error(ex.Message, ex);
+            {                
+                writeErrorLog(ex.Message, ex);
                 throw ex;
             }
         }
@@ -454,13 +471,14 @@ namespace WBeParkingPDA
                 }
                 catch (Exception ex)
                 {
-                    logger.Error(ex.Message, ex);
+                    writeErrorLog(ex.Message, ex);
+                    throw ex;
                 }
 
             }
 
         }
-
+ 
         void _ObjReader_TagRead(object sender, TagReadDataEventArgs e)
         {
             try
@@ -474,11 +492,17 @@ namespace WBeParkingPDA
                     if (taginputbox != null)
                     {
                         playBeepSound();
+                        try
+                        {
 
-                        taginputbox.Text = e.TagReadData.EpcString;
+                            taginputbox.Text = e.TagReadData.EpcString;
+                            logger.Info(string.Format("EPC={0}", e.TagReadData.Epc));
+                        }
+                        catch { }
+
                         taginputbox.Enabled = false;
                         taginputbox.Visible = true;
-                        logger.Info(string.Format("EPC={0}", e.TagReadData.Epc));
+                        
 
                         if (OnAfterTagRead != null)
                         {
@@ -488,8 +512,11 @@ namespace WBeParkingPDA
                 }
             }
             catch (Exception ex)
-            {
-                logger.Error(ex.Message, ex);
+            {                
+                writeErrorLog(ex.Message, ex);
+                _ObjReader_ReadException(sender, new ReaderExceptionEventArgs(new ReaderException(ex.Message, ex)));
+                this.DisableReader();
+                throw ex;
             }
 
         }
@@ -498,7 +525,8 @@ namespace WBeParkingPDA
         {
             try
             {
-                logger.Error(e.ReaderException.Message, e.ReaderException);
+                //logger.Error(e.ReaderException.Message, e.ReaderException);
+                writeErrorLog(e.ReaderException.Message, e.ReaderException);
 
                 if (_form.InvokeRequired)
                 {
@@ -506,17 +534,18 @@ namespace WBeParkingPDA
                 }
                 else
                 {
-                    if (scannerstatuslabel != null)
+                    if (OnTagReadException != null)
                     {
-                        scannerstatuslabel.Text = e.ReaderException.Message;
-                        scannerstatuslabel.Visible = true;
+                        OnTagReadException.Invoke(sender, e);
                     }
 
                 }
             }
             catch (Exception ex)
             {
-                logger.Error(ex.Message, ex);
+               
+                writeErrorLog(ex.Message, ex);
+                throw ex;
             }
 
         }
@@ -534,7 +563,6 @@ namespace WBeParkingPDA
                     }
                     else if (status.BatteryVoltage < 3700)
                     {
-
                         return 2;
                     }
                     else
@@ -543,7 +571,8 @@ namespace WBeParkingPDA
             }
             catch (Exception ex)
             {
-                logger.Error(ex.Message, ex);
+                writeErrorLog(ex.Message, ex);
+                throw ex;
             }
 
             return -1;
@@ -557,7 +586,7 @@ namespace WBeParkingPDA
             }
             catch (Exception ex)
             {
-                logger.Error("In playStartSound: " + ex.ToString());
+                writeErrorLog("In playStartSound: " + ex.ToString(), ex);
             }
         }
 
@@ -569,7 +598,7 @@ namespace WBeParkingPDA
             }
             catch (Exception ex)
             {
-                logger.Error("In playStopSound: " + ex.ToString());
+                writeErrorLog("In playStopSound: " + ex.ToString(), ex);    
             }
         }
 
@@ -581,7 +610,33 @@ namespace WBeParkingPDA
             }
             catch (Exception ex)
             {
-                logger.Error("In playBeepSound: " + ex.ToString());
+                writeErrorLog("In playBeepSound: " + ex.ToString(),ex);    
+            }
+        }
+        internal delegate void NoneReturnErrorLogWriterInvoker(object message, Exception ex);
+        internal delegate void NoneReturnInfoLogWriterInvoker(object message);
+
+        private void writeErrorLog(object message, Exception ex)
+        {
+            if (_form.InvokeRequired)
+            {
+                _form.Invoke(new NoneReturnErrorLogWriterInvoker(writeErrorLog), message, ex);
+            }
+            else
+            {
+                logger.Error(message, ex);
+            }
+        }
+
+        private void writeInfoLog(object message)
+        {
+            if (_form.InvokeRequired)
+            {
+                _form.Invoke(new NoneReturnInfoLogWriterInvoker(writeInfoLog), message);
+            }
+            else
+            {
+                logger.Info(message);
             }
         }
     }

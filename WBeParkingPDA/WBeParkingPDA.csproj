@@ -89,6 +89,7 @@
     <Compile Include="Classes\CarPurposeTypes.cs" />
     <Compile Include="Classes\CoreDLL.cs" />
     <Compile Include="Classes\ETCBinding.cs" />
+    <Compile Include="Classes\FakeRFIDScanner.cs" />
     <Compile Include="Classes\KeyBoardHelper.cs" />
     <Compile Include="Classes\KeyBoardHelperFactory.cs" />
     <Compile Include="Classes\LogProvider.cs" />
@@ -115,6 +116,12 @@
     <Compile Include="Main.Designer.cs">
       <DependentUpon>Main.cs</DependentUpon>
     </Compile>
+    <Compile Include="OptionForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="OptionForm.Designer.cs">
+      <DependentUpon>OptionForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="BaseForm.resx">
@@ -128,6 +135,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Main.resx">
       <DependentUpon>Main.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="OptionForm.resx">
+      <DependentUpon>OptionForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -154,9 +164,6 @@
     </Content>
     <None Include="ClassDiagram1.cd" />
     <None Include="DesignTimeAttributes.xmta" />
-    <None Include="wbeparking.db">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CompactFramework.CSharp.targets" />
   <ProjectExtensions>

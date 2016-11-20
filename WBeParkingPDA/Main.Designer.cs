@@ -35,6 +35,8 @@
             this.btnUpload = new System.Windows.Forms.Button();
             this.sys_contextmenu = new System.Windows.Forms.ContextMenu();
             this.menuItem_AppExit = new System.Windows.Forms.MenuItem();
+            this.menuItem1 = new System.Windows.Forms.MenuItem();
+            this.menuItem_Options = new System.Windows.Forms.MenuItem();
             this.panelUploadStatus.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -56,7 +58,7 @@
             this.panelUploadStatus.Controls.Add(this.labelUploadStatus);
             this.panelUploadStatus.Controls.Add(this.progressBar1);
             this.panelUploadStatus.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.panelUploadStatus.Location = new System.Drawing.Point(0, 700);
+            this.panelUploadStatus.Location = new System.Drawing.Point(0, 662);
             this.panelUploadStatus.Name = "panelUploadStatus";
             this.panelUploadStatus.Size = new System.Drawing.Size(480, 100);
             this.panelUploadStatus.Visible = false;
@@ -95,11 +97,22 @@
             // sys_contextmenu
             // 
             this.sys_contextmenu.MenuItems.Add(this.menuItem_AppExit);
+            this.sys_contextmenu.MenuItems.Add(this.menuItem1);
+            this.sys_contextmenu.MenuItems.Add(this.menuItem_Options);
             // 
             // menuItem_AppExit
             // 
             this.menuItem_AppExit.Text = "結束程式";
             this.menuItem_AppExit.Click += new System.EventHandler(this.menuItem_AppExit_Click);
+            // 
+            // menuItem1
+            // 
+            this.menuItem1.Text = "-";
+            // 
+            // menuItem_Options
+            // 
+            this.menuItem_Options.Text = "設定";
+            this.menuItem_Options.Click += new System.EventHandler(this.menuItem_Options_Click);
             // 
             // Main
             // 
@@ -136,5 +149,7 @@
         private System.Windows.Forms.Button btnUpload;
         private System.Windows.Forms.ContextMenu sys_contextmenu;
         private System.Windows.Forms.MenuItem menuItem_AppExit;
+        private System.Windows.Forms.MenuItem menuItem1;
+        private System.Windows.Forms.MenuItem menuItem_Options;
     }
 }
