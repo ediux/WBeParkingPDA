@@ -180,7 +180,8 @@ namespace WBeParkingPDA
             model.CarPurposeTypes.Add(new CarPurposeTypes() { Id = 1, Name = "自用車", Void = false });
             model.CarPurposeTypes.Add(new CarPurposeTypes() { Id = 2, Name = "公務車", Void = false });
 #if DEBUG
-            model.AppSettings.Add("RemoteHost", "http://61.216.6.217:5002");
+            //model.AppSettings.Add("RemoteHost", "http://61.216.6.217:5002");
+            model.AppSettings.Add("RemoteHost", "http://202.39.229.116");
 #else
             model.AppSettings.Add("RemoteHost", "http://202.39.229.116");
 #endif
@@ -191,17 +192,14 @@ namespace WBeParkingPDA
         {
             try
             {
-                if (File.Exists(path))
-                {
-                    FileStream jsonFile = new FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
-                    StreamWriter jsonWriter = new StreamWriter(jsonFile, Encoding.UTF8);
-                    //Newtonsoft.Json.JsonTextWriter jwriter = new Newtonsoft.Json.JsonTextWriter(jsonWriter);
-                    //jwriter.Flush();
-                    jsonWriter.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(database));
-                    //jwriter.Close();
-                    jsonWriter.Close();
-                    jsonFile.Close();
-                }
+                FileStream jsonFile = new FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
+                StreamWriter jsonWriter = new StreamWriter(jsonFile, Encoding.UTF8);
+                //Newtonsoft.Json.JsonTextWriter jwriter = new Newtonsoft.Json.JsonTextWriter(jsonWriter);
+                //jwriter.Flush();
+                jsonWriter.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(database));
+                //jwriter.Close();
+                jsonWriter.Close();
+                jsonFile.Close();                
             }
             catch (Exception ex)
             {
