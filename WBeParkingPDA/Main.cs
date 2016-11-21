@@ -223,7 +223,7 @@ namespace WBeParkingPDA
 
         private void menuItem_AppExit_Click(object sender, EventArgs e)
         {
-            this.Close();
+            base.Close();
         }
 
         private void menuItem_Options_Click(object sender, EventArgs e)
