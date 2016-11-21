@@ -199,7 +199,7 @@ namespace WBeParkingPDA
             Properties.Add("endscanwavefile", @"\Windows\Splat.wav");
             Properties.Add("prefix", "");
             Properties.Add("suffix", "");
-            Properties.Add("readpower", "");
+            Properties.Add("readpower", "1000");
             Properties.Add("tagpopulation", "small");
             Properties.Add("tagselection", "None");
             Properties.Add("selectionaddress", "0");

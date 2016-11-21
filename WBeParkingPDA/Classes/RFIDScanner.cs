@@ -275,7 +275,8 @@ namespace WBeParkingPDA
                     //disable read power coverage
 
                     ReadMgr.GetReader().ParamSet("/reader/transportTimeout", 2000);
-                    int powerLevel = Convert.ToInt32(properties["readpower"]);
+                    string storagevalue = properties["readpower"];
+                    int powerLevel = Convert.ToInt32(storagevalue);
                     ReadMgr.GetReader().ParamSet("/reader/radio/readPower", powerLevel);
                     Utility.SwitchRegion(properties["region"]);
                     // MCS++

@@ -38,7 +38,8 @@ namespace WBeParkingPDA
         static log4net.ILog logger = log4net.LogManager.GetLogger(typeof(RFIDBinding));
 
 #if DEBUG
-        private FakeRFIDScanner rfidscanner;
+        //private FakeRFIDScanner rfidscanner;
+        private RFIDScanner rfidscanner;
 #else
         private RFIDScanner rfidscanner;
 #endif
@@ -377,7 +378,8 @@ namespace WBeParkingPDA
                 try
                 {
 #if DEBUG
-                    rfidscanner = new FakeRFIDScanner(this);
+                    //rfidscanner = new FakeRFIDScanner(this);
+                    rfidscanner = new RFIDScanner(this);
 #else
                     rfidscanner = new RFIDScanner(this);
 #endif

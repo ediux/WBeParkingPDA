@@ -46,11 +46,12 @@ namespace WBeParkingPDA
             {
                 panelUploadStatus.Visible = false;
                 btnUpload.Enabled = true;
+                Cursor.Current = Cursors.Default;
                 if (e.Result is bool)
                 {
                     if (((bool)e.Result))
                     {
-                        Utility.ShowInfoMsg("同步成功!");
+                        Utility.ShowInfoMsg(string.Format("同步成功!\n上載筆數:{0}\n下載筆數:{1}\n",beforecount,aftercount));
                     }
                     else
                     {
@@ -94,22 +95,26 @@ namespace WBeParkingPDA
             }
 
         }
-
+        static int beforecount = 0;
+        static int aftercount = 0;
         private void bgworker_DoWork(object sender, DoWorkEventArgs e)
         {
             try
             {
                 bgworker.ReportProgress(0, "準備同步...");
+               
                 WBeParkingPDA.Classes.WebClientHelper client = new WBeParkingPDA.Classes.WebClientHelper();
                 try
                 {
                     bgworker.ReportProgress(30, "準備同步...");
                     SyncDataViewModel source = SyncDataViewModel.LoadFile(Utility.jsondbpath);
+                    beforecount = source.ETCBinding.Count;
                     bgworker.ReportProgress(50, "連線中...");
                     SyncDataViewModel clonemem = source.CloneToUploadSync();
                     bgworker.ReportProgress(75, "上載資料中...");
                     string remoteurl = source.AppSettings["RemoteHost"] as string;
                     clonemem = client.PostData(clonemem, remoteurl + "/api/SQLiteSync");
+                    aftercount = clonemem.ETCBinding.Count;
                     bgworker.ReportProgress(90, "下載資料並處理...");
                     clonemem.AppSettings = source.AppSettings;
                     bgworker.ReportProgress(97, "下載資料並處理...");
@@ -193,11 +198,14 @@ namespace WBeParkingPDA
         {
             try
             {
+                Cursor.Current = Cursors.WaitCursor;
+
                 if (panelUploadStatus.Visible == false)
                 {
                     bgworker.RunWorkerAsync();
                     btnUpload.Enabled = false;
                     panelUploadStatus.Visible = true;
+                    
                 }
                 else
                 {

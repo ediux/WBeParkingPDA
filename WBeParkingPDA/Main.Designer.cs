@@ -71,7 +71,7 @@
             this.labelUploadStatus.Location = new System.Drawing.Point(0, 52);
             this.labelUploadStatus.Name = "labelUploadStatus";
             this.labelUploadStatus.Size = new System.Drawing.Size(480, 48);
-            this.labelUploadStatus.Text = "label1";
+            this.labelUploadStatus.Text = "等候中...";
             this.labelUploadStatus.TextAlign = System.Drawing.ContentAlignment.TopCenter;
             // 
             // progressBar1
