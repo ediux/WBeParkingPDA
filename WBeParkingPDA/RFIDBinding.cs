@@ -138,21 +138,42 @@ namespace WBeParkingPDA
                 //isshow = false;
 
                 CarPurposeTypes selectedvaile = (CarPurposeTypes)ddlPurposeTypes.SelectedItem;
-                MemoryStorage.carproposeid = selectedvaile.Id;
+                if (selectedvaile == null)
+                {
+                    if (ddlPurposeTypes.Items.Count > 0)
+                    {
+                        ddlPurposeTypes.SelectedIndex = 0;
+                        selectedvaile = (CarPurposeTypes)ddlPurposeTypes.Items[0];
+                        MemoryStorage.carproposeid = selectedvaile.Id;
+                    }
+                }
+                else
+                {
 
-                if (string.IsNullOrEmpty(tb_eTagEPC.Text))
+                    MemoryStorage.carproposeid = selectedvaile.Id;
+                }
+                if (string.IsNullOrEmpty(MemoryStorage.ePCID))
                 {
                     Utility.ShowErrMsg("請先掃描eTag!");
                     return;
                 }
-                if (string.IsNullOrEmpty(tbCarId.Text))
+                if (string.IsNullOrEmpty(MemoryStorage.carNumber))
                 {
                     Utility.ShowErrMsg("車號不能為空!");
                     return;
                 }
 
                 logger.Info(string.Format("EPC={0},CarNumber={1},PurposeTypes={2}", MemoryStorage.ePCID, MemoryStorage.carNumber, selectedvaile.Name));
-               
+
+                List<ETCBinding> RemoveAll = memDb.ETCBinding.Where(w => w.ETCID == MemoryStorage.ePCID).ToList();
+
+                if (RemoveAll.Count > 0)
+                {
+                    foreach (ETCBinding removedata in RemoveAll)
+                    {
+                        memDb.ETCBinding.Remove(removedata);
+                    }
+                }
                 memDb.ETCBinding.Add(new ETCBinding()
                 {
                     CarID = MemoryStorage.carNumber,
@@ -180,7 +201,7 @@ namespace WBeParkingPDA
             {
                 NextFocus(btnSave);
                 logger.Error(ex.Message, ex);
-                Utility.ShowErrMsg(ex.Message);
+                //Utility.ShowErrMsg(ex.Message);
                 this.Close();
             }
         }
@@ -258,7 +279,7 @@ namespace WBeParkingPDA
 
                         tbCarId.Text = MemoryStorage.carNumber;
 
-                        ddlPurposeTypes.SelectedItem = memDb.CarPurposeTypes.First(s => s.Id == MemoryStorage.carproposeid);
+                        ddlPurposeTypes.SelectedItem = memDb.CarPurposeTypes.FirstOrDefault(s => s.Id == MemoryStorage.carproposeid);
                         //isDataExists = true;
 
                         DialogResult dS = Utility.ShowInfoMsg("資料已存在!");
@@ -266,9 +287,13 @@ namespace WBeParkingPDA
                         if (dS == DialogResult.OK || dS == DialogResult.None)
                         {
                             EnabledbtnGoBack();
-                           
+
+                            //SetCanInProcessing();
+                            SetCanNotInProcessing();
+                            //SeteTagInputFocus();
+                            //SetddlPurposeTypes();
+                            SetCanEditCarNumber();
                             SetCanInProcessing();
-                            NextFocus(tb_eTagEPC);
                             return;
                         }
                     }
@@ -383,11 +408,11 @@ namespace WBeParkingPDA
 #else
                     rfidscanner = new RFIDScanner(this);
 #endif
-                    
+
                     rfidscanner.TagInputBox = tb_eTagEPC;
                     rfidscanner.OnAfterTagRead += new EventHandler<ThingMagic.TagReadDataEventArgs>(rfidscanner_OnAfterTagRead);
                     rfidscanner.OnTagReadException += new EventHandler<ThingMagic.ReaderExceptionEventArgs>(rfidscanner_OnTagReadException);
-                    
+
                     rfidscanner.EnableReader();
                 }
                 catch (Exception ex)
@@ -439,6 +464,24 @@ namespace WBeParkingPDA
         private void DisabledbtnGoBack()
         {
             btnBackTo.Enabled = false;
+        }
+
+        private void SetCanEditCarNumber()
+        {
+
+
+            tb_eTagEPC.ReadOnly = true;
+            tb_eTagEPC.Enabled = false;
+
+            tbCarId.ReadOnly = false;
+            tbCarId.Enabled = true;
+
+            //ddlPurposeTypes.SelectedIndex = 0;
+            ddlPurposeTypes.Enabled = true;
+
+            btnSave.Enabled = true;
+
+            ddlPurposeTypes.Focus();
         }
 
         private void SeteTagInputFocus()
@@ -518,28 +561,36 @@ namespace WBeParkingPDA
 
                         //memDb.SaveETCTagBinding(tb_eTagEPC.Text, tbCarId.Text, 0);
 
-                        if (memDb.ETCBinding.Any(w => w.CarID.Equals(strTmpStrCar, StringComparison.InvariantCultureIgnoreCase)))
+                        //if (memDb.ETCBinding.Any(w => w.CarID.Equals(strTmpStrCar, StringComparison.InvariantCultureIgnoreCase)))
+                        //{
+                        //    if (Utility.ShowInfoMsg(string.Format("車號:{0}\n用途:{1}\n此資料已存在!", strTmpStrCar, ((CarPurposeTypes)ddlPurposeTypes.SelectedItem).Name)) == DialogResult.OK)
+                        //    {
+                        //        tbCarId.Text = strTmpStrCar;
+                        //        SetCarNumberFocus();
+                        //        SetCanNotInProcessing();
+                        //    }
+
+                        //}
+                        //else
+                        //{
+                        if (strTmpStrCar == string.Empty)
                         {
-                            Utility.ShowErrMsg(string.Format("車號:{0}\n用途:{1}\n此資料已存在!", strTmpStrCar, ((CarPurposeTypes)ddlPurposeTypes.SelectedItem).Name));
+                            MemoryStorage.carNumber = strTmpStrCar;
                             tbCarId.Text = strTmpStrCar;
                             SeteTagInputFocus();
                             SetCanInProcessing();
                         }
-                        else
+                        else if (strTmpStrCar != string.Empty)
                         {
-                            if (strTmpStrCar == string.Empty)
-                            {
-                                MemoryStorage.carNumber = strTmpStrCar;
-                                tbCarId.Text = strTmpStrCar;
-                            }
-                            else if (strTmpStrCar != string.Empty)
-                            {
-                                MemoryStorage.carNumber = strTmpStrCar;
-                                tbCarId.Text = strTmpStrCar;
-                            }
+                            MemoryStorage.carNumber = strTmpStrCar;
+                            tbCarId.Text = strTmpStrCar;
+                            MemoryStorage.carNumber = strTmpStrCar;
                             SetddlPurposeTypes();
+                            SetCanNotInProcessing();
                         }
-                        SetCanInProcessing();
+
+                        //}
+
 
                     }
                     else
@@ -565,6 +616,20 @@ namespace WBeParkingPDA
 
         }
         #endregion
+
+        private void tbCarId_KeyUp(object sender, KeyEventArgs e)
+        {
+            try
+            {
+                ShowCarNoKeyBoard(' ');
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex.Message, ex);
+                Utility.ShowErrMsg(ex.Message);
+                this.Close();
+            }
+        }
 
     }
 }

@@ -51,7 +51,7 @@
             this.label2.Location = new System.Drawing.Point(0, 762);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(480, 38);
-            this.label2.Text = "V1.2";
+            this.label2.Text = "V1.3";
             this.label2.TextAlign = System.Drawing.ContentAlignment.TopRight;
             // 
             // BaseForm
